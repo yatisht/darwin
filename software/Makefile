@@ -26,7 +26,7 @@ config_file.o: ConfigFile.cpp
 	g++ -std=c++11 -O4 -Wall -o config_file.o -c ConfigFile.cpp -g
 
 darwin_ref_guided: ntcoding.o fasta.o seed_pos_table.o align.o chameleon.o config_file.o gact.o darwin_ref_guided.o 
-	g++ -std=c++11 -O4 -Wall fasta.o ntcoding.o seed_pos_table.o align.o chameleon.o config_file.o gact.o darwin_ref_guided.o -o darwin_ref_guided -pthread 
+	g++ -std=c++11 -O4 -Wall -fopenmp fasta.o ntcoding.o seed_pos_table.o align.o chameleon.o config_file.o gact.o darwin_ref_guided.o -o darwin_ref_guided -pthread 
 
 clean:
 	rm -rf *.o *.out darwin_ref_guided 

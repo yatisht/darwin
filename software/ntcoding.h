@@ -33,6 +33,10 @@ SOFTWARE.
 #include <assert.h>
 #include <vector>
 
+#define FIND_MIN(x, y) (x < y) ? x : y
+#define FIND_MAX(x, y) (x > y) ? x : y
+
+
 using namespace std;
 
 void SetIgnoreLower();
@@ -41,4 +45,11 @@ void GenerateShapePos(std::string shape);
 uint32_t KmerToIndex(std::string kmer);
 uint32_t GetKmerIndexAtPos(char* sequence, uint32_t pos);
 uint32_t GetKmerIndexAtPos(std::string sequence, uint32_t pos);
+
+//static inline int NtToTwoBit (char nt);
+uint32_t* SeqToTwoBit (char* seq, uint32_t seq_len);
+//static inline uint32_t Min_Window (uint32_t* window, int size);
+//static inline uint32_t GetSeedAtPos (uint32_t* s_2bit, uint32_t pos, int k);
+std::pair<uint64_t*, uint32_t> TwoBitToMinimizers (uint32_t* s_2bit, uint32_t s_len, int k, int w);
+std::pair<uint64_t*, uint32_t> QTwoBitToMinimizers (uint32_t* s_2bit, uint32_t s_len, int k, int w);
 

@@ -53,6 +53,7 @@ int gap_extend;
 std::string seed_shape;
 std::string seed_shape_str;
 uint32_t bin_size;
+uint32_t window_size;
 int dsoft_threshold;
 int num_seeds;
 int seed_occurence_multiple;
@@ -308,6 +309,7 @@ int main(int argc, char *argv[]) {
     // D-SOFT parameters
     seed_shape_str          = (std::string) cfg.Value("DSOFT_params", "seed_shape");
     bin_size                = cfg.Value("DSOFT_params", "bin_size");
+    window_size             = cfg.Value("DSOFT_params", "window_size");
     dsoft_threshold         = cfg.Value("DSOFT_params", "threshold");
     num_seeds               = cfg.Value("DSOFT_params", "num_seeds");
     seed_occurence_multiple = cfg.Value("DSOFT_params", "seed_occurence_multiple");
@@ -399,7 +401,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "\nConstructing seed position table ...\n";
     gettimeofday(&start, NULL);
 
-    sa = new SeedPosTable(reference_char, reference_length, seed_shape, seed_occurence_multiple, bin_size);
+    sa = new SeedPosTable(reference_char, reference_length, seed_shape, seed_occurence_multiple, bin_size, window_size);
 
     gettimeofday(&end_time, NULL);
 

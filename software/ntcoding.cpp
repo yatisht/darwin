@@ -24,9 +24,11 @@ SOFTWARE.
 
 #include "ntcoding.h"
 #include <stdlib.h>
+#include <cstring>
+#include <limits>
 
 int shape_pos[32];
-int shape_size;
+int shape_size; 
  
 uint32_t NtChar2Int (char nt) {
     switch(nt) {
@@ -91,5 +93,130 @@ uint32_t GetKmerIndexAtPos (std::string sequence, uint32_t pos) {
             }
     }
     return kmer;
+}
+
+static inline int NtToTwoBit (char nt) {
+    switch (nt) {
+        case 'a':
+        case 'A': return 0;
+        case 'c':
+        case 'C': return 1;
+        case 'g':
+        case 'G': return 2;
+        case 't':
+        case 'T': return 3;
+        default : return 0;
+    }
+    return 0;
+}
+
+static inline uint32_t hash32(uint32_t key, int k)
+{
+    uint32_t m = (1 << 2*k) -1;
+    key = (~key + (key << 21)) & m;
+    key = key ^ (key >> 24);
+    key = ((key + (key << 3)) + (key << 8)) & m;
+    key = key ^ (key >> 14);
+    key = ((key + (key << 2)) + (key << 4)) & m;
+    key = key ^ (key >> 28);
+    key = (key + (key << 31)) & m;
+    return key;
+}
+
+uint32_t* SeqToTwoBit (char* seq, uint32_t seq_len) {
+    uint32_t len_2bit = 1+(seq_len/16);
+    uint32_t* s_2bit = (uint32_t*) calloc(len_2bit, sizeof(uint32_t));
+
+    char c;
+    int idx, j_max;
+    for (uint32_t i = 0; i < seq_len; i+=16) {
+        j_max = FIND_MIN(16, seq_len-i);
+        idx = i/16;
+        for (int j = 0; j < j_max; j++) {
+            c = seq[i+j]; 
+            s_2bit[idx] += (NtToTwoBit(c) << 2*j);
+        }
+    }
+    return s_2bit; 
+
+}
+
+static inline uint32_t Min_Window (uint32_t* window, int size) {
+    uint32_t min = std::numeric_limits<uint32_t>::max();
+    for (int i = 0; i < size; i++) {
+        if (min > window[i]) {
+            min = window[i];
+        }
+    }
+    return min;
+}
+
+static inline uint32_t GetSeedAtPos (uint32_t* s_2bit, uint32_t pos, int k) {
+    int idx, shift;
+    uint32_t m = (1 << 2*k) - 1;
+    uint32_t seed;
+    idx = pos/16;
+    shift = pos%16;
+    uint64_t concat = (((uint64_t) s_2bit[idx+1]) << 32) + s_2bit[idx];
+    seed = (concat >> 2*shift) & m;
+    return seed;
+}
+
+std::pair<uint64_t*, uint32_t> TwoBitToMinimizers (uint32_t* s_2bit, uint32_t s_len, int k, int w) {
+    uint32_t* window = (uint32_t*) calloc(w, sizeof(uint32_t));
+    uint64_t last_m = 0;
+    uint32_t last_p = 0;
+    uint64_t m;
+
+    uint32_t N = 0;
+
+    uint64_t* minimizers = (uint64_t*) calloc(s_len*16, sizeof(uint64_t));
+    for (int p = 0; p < w-1; p++) {
+        window[p] = hash32(GetSeedAtPos(s_2bit, p, k), k);
+    }
+
+    for (uint32_t p = w-1; p < 16*s_len - k - w; p++) {
+        window[p%w] = hash32(GetSeedAtPos(s_2bit, p, k), k);
+        m = Min_Window(window, w);
+        if ((m != last_m) || (p - last_p >= w)) {
+            minimizers[N++] = (m << 32) + p;
+            last_m = m;
+            last_p = p;
+        }
+    }
+    
+    uint64_t* new_minimizers = (uint64_t*) malloc(N*sizeof(uint64_t));
+    memcpy(new_minimizers, minimizers, N*sizeof(uint64_t));
+    delete[] minimizers;
+    return std::pair <uint64_t*, uint32_t> (new_minimizers, N);
+}
+
+std::pair<uint64_t*, uint32_t> QTwoBitToMinimizers (uint32_t* s_2bit, uint32_t s_len, int k, int w) {
+    uint32_t* window = (uint32_t*) calloc(w, sizeof(uint32_t));
+    uint64_t last_m = 0;
+    uint32_t last_p = 0;
+    uint64_t m;
+
+    uint32_t N = 0;
+
+    uint64_t* minimizers = (uint64_t*) calloc(s_len*16, sizeof(uint64_t));
+    for (int p = 0; p < w-1; p++) {
+        window[p] = hash32(GetSeedAtPos(s_2bit, p, k), k);
+    }
+
+    for (uint32_t p = w-1; p < 16*s_len - k - w; p++) {
+        window[p%w] = hash32(GetSeedAtPos(s_2bit, p, k), k);
+        m = Min_Window(window, w);
+        if ((m != last_m) || (p - last_p >= w)) {
+            minimizers[N++] = ((uint64_t) p << 32) + m;
+            last_m = m;
+            last_p = p;
+        }
+    }
+    
+    uint64_t* new_minimizers = (uint64_t*) malloc(N*sizeof(uint64_t));
+    memcpy(new_minimizers, minimizers, N*sizeof(uint64_t));
+    delete[] minimizers;
+    return std::pair <uint64_t*, uint32_t> (new_minimizers, N);
 }
 
