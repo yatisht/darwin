@@ -117,7 +117,7 @@ int SeedPosTable::DSOFT(char* query, uint32_t query_length, int N, int threshold
     int k = kmer_size_;
     int w = window_size_;
     std::pair <uint64_t*, uint32_t> m_n;
-    m_n = QTwoBitToMinimizers(q_2bit, FIND_MIN(qlen_2bit, 1+N/16), k, w); 
+    m_n = QTwoBitToMinimizers(q_2bit, qlen_2bit, k, w); 
     uint64_t* minimizers = m_n.first;
     uint32_t num_min = m_n.second;
     
@@ -131,6 +131,9 @@ int SeedPosTable::DSOFT(char* query, uint32_t query_length, int N, int threshold
             uint32_t end_index = index_table_[index];
 
             if (end_index - start_index <= kmer_max_occurence_) {
+                if (num_seeds > N) {
+                    break;
+                }
                 num_seeds++;
                 for (uint32_t j = start_index; j < end_index; j++) {
                     hit = pos_table_[j];

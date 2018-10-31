@@ -110,6 +110,8 @@ static inline int NtToTwoBit (char nt) {
     return 0;
 }
 
+// Integer hash function developed by Thomas Wang 
+// See <http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm>
 static inline uint32_t hash32(uint32_t key, int k)
 {
     uint32_t m = (1 << 2*k) -1;
