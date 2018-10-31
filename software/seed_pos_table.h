@@ -39,7 +39,7 @@ class SeedPosTable {
         uint32_t bin_size_;
         uint32_t log_bin_size_;
         int kmer_size_;
-        int shape_size_;
+//        int shape_size_;
         int window_size_;
         uint32_t kmer_max_occurence_;
         uint32_t *index_table_;
@@ -52,7 +52,7 @@ class SeedPosTable {
 
     public:
         SeedPosTable();
-        SeedPosTable(char* ref_str, uint32_t ref_length, std::string shape, uint32_t seed_occurence_multiple, uint32_t bin_size, uint32_t window_size);
+        SeedPosTable(char* ref_str, uint32_t ref_length, int kmer_size, uint32_t seed_occurence_multiple, uint32_t bin_size, uint32_t window_size);
         ~SeedPosTable();
 
         bool IsPresent(uint32_t index);

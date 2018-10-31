@@ -27,9 +27,6 @@ SOFTWARE.
 #include <cstring>
 #include <limits>
 
-int shape_pos[32];
-int shape_size; 
- 
 uint32_t NtChar2Int (char nt) {
     switch(nt) {
         case 'a':
@@ -56,45 +53,6 @@ uint32_t KmerToIndex(std::string kmer) {
     return index;
 }
 
-void GenerateShapePos (std::string shape) {
-    shape_size = 0;
-    for (int i = 0; i < shape.length(); i++) {
-        if (shape[i] == '1') {
-            shape_pos[shape_size++] = i;
-        }
-    }
-}
-
-uint32_t GetKmerIndexAtPos (char* sequence, uint32_t pos) {
-    uint32_t kmer = 0;
-    for (int i = 0; i < shape_size; i++) {
-            uint32_t nt = NtChar2Int(sequence[pos+shape_pos[i]]);
-            if (nt != N_NT) {
-                kmer = (kmer << 2) + nt;
-            }
-            else {
-                kmer = (1 << 31);
-                break;
-            }
-    }
-    return kmer;
-}
-
-uint32_t GetKmerIndexAtPos (std::string sequence, uint32_t pos) {
-    uint32_t kmer = 0;
-    for (int i = 0; i < shape_size; i++) {
-            uint32_t nt = NtChar2Int(sequence[pos+shape_pos[i]]);
-            if (nt != N_NT) {
-                kmer = (kmer << 2) + nt;
-            }
-            else {
-                kmer = (1 << 31);
-                break;
-            }
-    }
-    return kmer;
-}
-
 static inline int NtToTwoBit (char nt) {
     switch (nt) {
         case 'a':
@@ -109,6 +67,7 @@ static inline int NtToTwoBit (char nt) {
     }
     return 0;
 }
+void GenerateShapePos(std::string shape);
 
 // Integer hash function developed by Thomas Wang 
 // See <http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm>

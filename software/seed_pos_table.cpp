@@ -28,7 +28,6 @@ SOFTWARE.
 SeedPosTable::SeedPosTable() {
     ref_size_ = 0;
     kmer_size_ = 0;
-    shape_size_ = 0;
     window_size_ = 0;
     num_bins_ = 0;
     nz_bins_ = 0;
@@ -44,12 +43,7 @@ bool SeedPosTable::IsPresent(uint32_t index) {
     return (end_index - start_index <= kmer_max_occurence_);
 }
 
-SeedPosTable::SeedPosTable(char* ref_str, uint32_t ref_length, std::string shape, uint32_t seed_occurence_multiple, uint32_t bin_size, uint32_t window_size) {
-    shape_size_ = shape.length(); 
-    int kmer_size = 0;
-    for (int i = 0; i < shape_size_; i++) {
-        kmer_size += (shape[i] == '1');
-    }
+SeedPosTable::SeedPosTable(char* ref_str, uint32_t ref_length, int kmer_size, uint32_t seed_occurence_multiple, uint32_t bin_size, uint32_t window_size) {
     
     assert(kmer_size <= 15);
     assert(kmer_size > 3); 
