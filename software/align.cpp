@@ -89,24 +89,10 @@ std::queue<int> AlignWithBT(char* ref_seq, long long int ref_len, char* query_se
 
           int match;
           //case of unknown nucleotide in either reference or query
-          if (ref_nt == N_NT || query_nt == N_NT) {
-              match = -INF; // Force N's to align with gaps
-          } else {
-              //value from the W matrix for the match/mismatch penalty/point
-              match = sub_mat[query_nt*5 + ref_nt];
-          }
+          match = sub_mat[query_nt*5 + ref_nt];
 
           //columnwise calculations
-          if (m_matrix_rd[j-1] > i_matrix_rd[j-1] && m_matrix_rd[j-1] > d_matrix_rd[j-1]) {
-              m_matrix_wr[j] = m_matrix_rd[j-1] + match;
-          } else if (i_matrix_rd[j-1] > d_matrix_rd[j-1]) {
-              m_matrix_wr[j] = i_matrix_rd[j-1] + match;
-          } else {
-              m_matrix_wr[j] = d_matrix_rd[j-1] + match;
-          }
-          if (m_matrix_wr[j] < 0) {
-              m_matrix_wr[j] = 0;
-          }
+          m_matrix_wr[j] = h_matrix_rd[j-1] + match;
 
           int ins_open   = m_matrix_rd[j] + gap_open;
           int ins_extend = i_matrix_rd[j] + gap_extend;

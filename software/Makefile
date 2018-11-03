@@ -1,5 +1,5 @@
 
-all: darwin_ref_guided 
+all: darwin_ref_guided read_overlaps 
 
 ntcoding.o: ntcoding.h ntcoding.cpp
 	g++ -O4  -c ntcoding.cpp -g
@@ -19,6 +19,9 @@ gact.o: gact.h gact.cpp
 darwin_ref_guided.o: gact.h darwin_ref_guided.cpp
 	g++ -std=c++11 -O4 -Wall -c darwin_ref_guided.cpp -g
 
+read_overlaps.o: gact.h read_overlaps.cpp
+	g++ -std=c++11 -O4 -Wall -c read_overlaps.cpp -g
+
 chameleon.o: Chameleon.cpp
 	g++ -std=c++11 -O4 -Wall -o chameleon.o -c Chameleon.cpp -g
 
@@ -28,6 +31,9 @@ config_file.o: ConfigFile.cpp
 darwin_ref_guided: ntcoding.o fasta.o seed_pos_table.o align.o chameleon.o config_file.o gact.o darwin_ref_guided.o 
 	g++ -std=c++11 -O4 -Wall -fopenmp fasta.o ntcoding.o seed_pos_table.o align.o chameleon.o config_file.o gact.o darwin_ref_guided.o -o darwin_ref_guided -pthread 
 
+read_overlaps: ntcoding.o fasta.o seed_pos_table.o align.o chameleon.o config_file.o gact.o read_overlaps.o 
+	g++ -std=c++11 -O4 -Wall -fopenmp fasta.o ntcoding.o seed_pos_table.o align.o chameleon.o config_file.o gact.o read_overlaps.o -o read_overlaps -pthread 
+
 clean:
-	rm -rf *.o *.out darwin_ref_guided 
+	rm -rf *.o *.out darwin_ref_guided read_overlaps 
 
