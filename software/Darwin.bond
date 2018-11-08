@@ -1,0 +1,143 @@
+namespace Darwin
+
+enum Application
+{
+    Hardware_Id = 0x685753, // SWh
+    Software_Id = 0x735753, // SWs
+    Version = 1
+}
+
+enum Function
+{
+    InitializeScoringParameters = 1,
+    InitializeDRAM =  2,
+    WaitForWrites = 3,
+    GACTMessageDRAM = 4
+}
+
+// TODO: Assign Magic codes
+enum Magic 
+{
+    InitializeScoringParameters = 1,
+    InitializeDRAM =  2,
+    WaitForWrites = 3,
+    GACTMessageDRAM = 4
+}
+
+using Score = int32;
+using Addr = uint64;
+using TileSize = uint16;
+using MaxTBSteps = uint16;
+using TileScore = uint32;
+//using Sequence = blob;
+using Sequence = vector<uint64>;
+using BatchSize = uint8;
+
+enum Status
+{
+    OK = 0,
+    InvalidData = 1     // validation rule(s) failed
+}
+
+struct AlignmentScoringParams
+{
+    // Scoring matrix is symmetric
+    0: Score sub_AA = 1;
+    1: Score sub_AC = -1;
+    2: Score sub_AG = -1;
+    3: Score sub_AT = -1;
+
+    4: Score sub_CC = 1;
+    5: Score sub_CG = -1;
+    6: Score sub_CT = -1;
+    
+    7: Score sub_GG = 1;
+    8: Score sub_GT = -1;
+
+    9: Score sub_TT = 1;
+    
+    10: Score sub_N = 0;
+
+    11: Score gap_open = -1;
+    12: Score gap_extend = -1;
+    
+    13: Score long_gap_open = -1;
+    14: Score long_gap_extend = -1;
+}
+
+struct AlignmentScoringParamsResponse
+{
+    0: Status status = OK;
+}
+
+struct InitializeDRAMMessage 
+{
+    0: Addr start_addr;
+    1: uint16 num_bytes;
+    2: Sequence data;
+}
+
+struct InitializeDRAMMessageResponse
+{
+    0: Status status = OK; 
+}
+
+struct WaitForWritesMessage
+{
+    0: int32 start = 1; 
+}
+
+struct WaitForWritesResponse 
+{
+    0: Status status = OK; 
+}
+
+struct AlignmentInputFieldsDRAM 
+{
+    // 7-6: unused, 5: Do traceback, 4: Reverse ref, 3:Complement ref, 2: Reverse query, 1: Complement query, 0: Align from end
+    0: uint8 align_fields;
+    
+    1: uint16 index;
+    
+    2: Addr ref_bases_start_addr; 
+    3: Addr query_bases_start_addr; 
+
+    4: TileSize ref_size; 
+    5: TileSize query_size; 
+
+    6: MaxTBSteps max_tb_steps = 512;
+
+    7: TileScore score_threshold = 0;
+}
+
+struct AlignmentResult
+{
+    0: BatchSize                index;
+    1: TileScore score;
+    
+    2: TileSize ref_offset;
+    3: TileSize query_offset;
+
+    4: TileSize ref_max_pos;
+    5: TileSize query_max_pos;
+
+    6: TileSize total_TB_pointers;
+
+    7: vector<uint64> TB_pointers;
+    
+    8: Status status = OK;
+}
+
+struct BatchAlignmentInputFieldsDRAM
+{
+    0: uint8  do_traceback; 
+    1: vector<AlignmentInputFieldsDRAM> requests;
+}
+
+struct BatchAlignmentResultDRAM
+{
+    // batch of results 
+    0: vector <AlignmentResult> results; 
+    // 1: Status status = OK;
+}
+
