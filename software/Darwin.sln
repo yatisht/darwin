@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2046
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Darwin", "Darwin.vcxproj", "{7003B7B2-7B3D-446B-A3C0-A3460D4F164F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7003B7B2-7B3D-446B-A3C0-A3460D4F164F}.Debug|x64.ActiveCfg = Debug|x64
+		{7003B7B2-7B3D-446B-A3C0-A3460D4F164F}.Debug|x64.Build.0 = Debug|x64
+		{7003B7B2-7B3D-446B-A3C0-A3460D4F164F}.Release|x64.ActiveCfg = Release|x64
+		{7003B7B2-7B3D-446B-A3C0-A3460D4F164F}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FEA54D1-A2E2-417E-8DEF-3371433A0BCF}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+EndGlobal

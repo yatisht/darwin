@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+*.user
+/packages
+/x64
+/DarwinAvx/packages
+/DarwinAvx/x64
+*.vspx
