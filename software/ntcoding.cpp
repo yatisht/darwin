@@ -1,8 +1,8 @@
 
 #include "ntcoding.h"
-#include <stdlib.h>
+#include <cstring>
 
-#include "tbb\scalable_allocator.h"
+#include "tbb/scalable_allocator.h"
 
 int shape_pos[32];
 int shape_size;
@@ -166,7 +166,7 @@ std::pair<uint64_t*, uint32_t> TwoBitToMinimizers(uint32_t* s_2bit, uint32_t s_l
 	}
 
 	uint64_t* new_minimizers = (uint64_t*)malloc(N * sizeof(uint64_t));
-	memcpy(new_minimizers, minimizers, N * sizeof(uint64_t));
+    std::memcpy(new_minimizers, minimizers, N * sizeof(uint64_t));
 	delete[] minimizers;
 	return std::pair <uint64_t*, uint32_t>(new_minimizers, N);
 }
@@ -195,7 +195,7 @@ std::pair<uint64_t*, uint32_t> QTwoBitToMinimizers(uint32_t* s_2bit, uint32_t s_
 	}
 
 	uint64_t* new_minimizers = (uint64_t*)scalable_malloc(N * sizeof(uint64_t));
-	memcpy(new_minimizers, minimizers, N * sizeof(uint64_t));
+    std::memcpy(new_minimizers, minimizers, N * sizeof(uint64_t));
 	scalable_free(minimizers);
 	return std::pair <uint64_t*, uint32_t>(new_minimizers, N);
 }

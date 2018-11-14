@@ -6,9 +6,12 @@
 #include <assert.h>
 #include <stdint.h>
 #include <math.h>
-#include "ntcoding.h"
 
-#include "tbb\concurrent_vector.h"
+#include "immintrin.h"
+
+#include "tbb/concurrent_vector.h"
+
+#include "ntcoding.h"
 
 using namespace std;
 
@@ -43,21 +46,21 @@ static inline bool CompareHits (Hits h1, Hits h2) {
 
 typedef std::vector<uint64_t> mini_list;
 
-#define _mm256_shuffle_epi32(a, b, imm) _mm256_castps_si256(_mm256_shuffle_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm))
+#define _mm256_shuffle_epx32(a, b, imm) _mm256_castps_si256(_mm256_shuffle_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b), imm))
 
 template <size_t __N>
-__forceinline __m256i _mm256_shift_left_si256(__m256i a, __m256i b) {
+inline __m256i _mm256_shift_left_si256(__m256i a, __m256i b) {
 	__m256i c = _mm256_permute2x128_si256(a, b, 0x03);
 	return _mm256_alignr_epi8(a, c, 16 - __N);
 }
 
 template <size_t __N>
-__forceinline __m256i _mm256_shift_right_si256(__m256i a, __m256i b) {
+inline __m256i _mm256_shift_right_si256(__m256i a, __m256i b) {
 	__m256i c = _mm256_permute2x128_si256(a, b, 0x21);
 	return _mm256_alignr_epi8(c, a, __N);
 }
 
-__forceinline uint64_t _q_to_2_bit(const char* pQuery)
+inline uint64_t _q_to_2_bit(const char* pQuery)
 {
 	// Load 16 characters 
 	__m128i _q = _mm_loadu_si128((const __m128i*) pQuery);
@@ -68,23 +71,23 @@ __forceinline uint64_t _q_to_2_bit(const char* pQuery)
 		_mm_and_si128(
 			_q,
 			// 8 -> 2 bit conversion mask
-			_mm_set1_epi8(0x0f)));
+            _mm_set1_epi8(0x0f)));
 
 	// PEXT mask for compacting the sequence
 	const uint64_t pext_mask_8_2 = 0x0303030303030303ull;
 
 	uint64_t q_2bit =
-		_pext_u64(_q_2bit.m128i_u64[1], pext_mask_8_2) << 16 |
-		_pext_u64(_q_2bit.m128i_u64[0], pext_mask_8_2);
+		_pext_u64(_mm_extract_epi64(_q_2bit, 1), pext_mask_8_2) << 16 |
+		_pext_u64(_mm_extract_epi64(_q_2bit, 0), pext_mask_8_2);
 
 	return q_2bit;
 }
 
-__forceinline __m256i _get_seeds(const __m256i _min_qword, const __m256i _kmer_mask)
+inline __m256i _get_seeds(const __m256i _min_qword, const __m256i _kmer_mask)
 {
 	// Vector of 8 minimizers
 	__m256i _min_x_8 = _mm256_and_si256(
-		_mm256_shuffle_epi32(
+        _mm256_shuffle_epx32(
 			_mm256_srlv_epi64(
 				_min_qword,
 				_mm256_set_epi64x(
@@ -167,7 +170,7 @@ __forceinline __m256i _get_seeds(const __m256i _min_qword, const __m256i _kmer_m
 	return _min_x_8;
 }
 
-__forceinline __m256i _sliding_minimum_5w(__m256i &_min_window, const __m256i _min_seeds)
+inline __m256i _sliding_minimum_5w(__m256i &_min_window, const __m256i _min_seeds)
 {
 	static const __m256i _mm256_000f_epu32 = _mm256_set_epi32(
 		0, 0, 0, 0xffffffff,
@@ -186,7 +189,7 @@ __forceinline __m256i _sliding_minimum_5w(__m256i &_min_window, const __m256i _m
 
 	_min_suffix = _mm256_min_epu32(
 		_min_suffix,
-		_mm256_shuffle_epi32(
+        _mm256_shuffle_epx32(
 			_min_suffix,
 			_mm256_000f_epu32,
 			0x0e));
@@ -201,7 +204,7 @@ __forceinline __m256i _sliding_minimum_5w(__m256i &_min_window, const __m256i _m
 		_min_seeds);
 
 	_min_prefix = _mm256_min_epu32(
-		_mm256_shuffle_epi32(
+        _mm256_shuffle_epx32(
 			_mm256_000f_epu32,
 			_min_prefix,
 			0x40),
@@ -220,7 +223,7 @@ __forceinline __m256i _sliding_minimum_5w(__m256i &_min_window, const __m256i _m
 	return _min_result;
 }
 
-__forceinline __m256i _sliding_minimum_9w(__m256i &_min_window, const __m256i _min_seeds)
+inline __m256i _sliding_minimum_9w(__m256i &_min_window, const __m256i _min_seeds)
 {
 	static const __m256i _mm256_ff_epu32 = _mm256_set1_epi32(0xffffffff);
 
@@ -332,8 +335,11 @@ void iterate_minimizers_qw(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			pWindow[p%w] = _min_seeds.m256i_u32[i];
-			uint32_t m = Min_Window(pWindow, w);
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_seeds, _mm256_castsi128_si256(_i));
+            pWindow[p%w] = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
+
+            uint32_t m = Min_Window(pWindow, w);
 			if ((m != last_m) || (p - last_p >= w))
 			{
 				body(p, m);
@@ -350,7 +356,10 @@ void iterate_minimizers_qw(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			pWindow[p%w] = _min_seeds.m256i_u32[i];
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_seeds, _mm256_castsi128_si256(_i));
+            pWindow[p%w] = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
+
 			uint32_t m = Min_Window(pWindow, w);
 			if ((m != last_m) || (p - last_p >= w))
 			{
@@ -397,7 +406,9 @@ void iterate_minimizers_5w(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			uint32_t m = _min_result.m256i_u32[i];
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_result, _mm256_castsi128_si256(_i));
+            uint32_t m = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
 
 			if ((m != last_m) || (p - last_p >= w))
 			{
@@ -417,7 +428,9 @@ void iterate_minimizers_5w(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			uint32_t m = _min_result.m256i_u32[i];
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_result, _mm256_castsi128_si256(_i));
+            uint32_t m = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
 
 			if ((m != last_m) || (p - last_p >= w))
 			{
@@ -464,7 +477,9 @@ void iterate_minimizers_9w(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			uint32_t m = _min_result.m256i_u32[i];
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_result, _mm256_castsi128_si256(_i));
+            uint32_t m = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
 
 			if ((m != last_m) || (p - last_p >= w))
 			{
@@ -484,7 +499,9 @@ void iterate_minimizers_9w(const char* query, const uint32_t query_length, uint6
 
 		for (uint32_t i = 0; (i < 8) && (p < qlen_centinel); i++, p++)
 		{
-			uint32_t m = _min_result.m256i_u32[i];
+            __m128i _i = _mm_cvtsi32_si128(i);
+            __m256i _val = _mm256_permutevar8x32_epi32(_min_result, _mm256_castsi128_si256(_i));
+            uint32_t m = _mm_cvtsi128_si32(_mm256_castsi256_si128(_val));
 
 			if ((m != last_m) || (p - last_p >= w))
 			{

@@ -23,7 +23,7 @@ bond::blob Darwin::Index::add_chr(std::string name, bond::blob seq)
 
 	chr_len.push_back(seq_len);
 
-	memcpy_s(g_DRAM->buffer + g_DRAM->referenceSize, g_DRAM->size - g_DRAM->referenceSize, seq.data(), seq_len);
+	std::memcpy(g_DRAM->buffer + g_DRAM->referenceSize, seq.data(), seq_len);
 
 	bond::blob ref(g_DRAM->buffer + g_DRAM->referenceSize, seq_len);
 

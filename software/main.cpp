@@ -1,12 +1,10 @@
 #define BOOST_LOCALE_NO_LIB
 #define NOMINMAX
-#include <windows.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
-#include <io.h>
 
 #include <iostream>
 #include <string>
@@ -20,7 +18,7 @@
 
 #include "zlib.h"
 #include "kseq.h"
-#include "iniReader.h"
+#include "INIReader.h"
 #include "ntcoding.h"
 #include "seed_pos_table.h"
 #include "Processor.h"
@@ -50,8 +48,8 @@ using namespace Darwin;
 clock_t start_time, end_time;
 double total_time;
 
-LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
-LARGE_INTEGER Frequency;
+//LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+//LARGE_INTEGER Frequency;
 
 SeedPosTable *sa;
 
@@ -228,30 +226,30 @@ int main(int argc, char *argv[]) {
 	cfg.num_fpgas = cfg_file.GetInteger("FPGA", "num_fpgas", 1);
 	cfg.chip_ids = cfg_file.Get("FPGA", "chip_ids", "0");
 
-	HINSTANCE hProcDLL = LoadLibraryA(cfg.processor_library.c_str());
+	//HINSTANCE hProcDLL = LoadLibraryA(cfg.processor_library.c_str());
 
-	size_t numProcessors;
+	//size_t numProcessors;
 
-	if (hProcDLL != nullptr)
-	{
-		InitializeProcessor_ptr initializeProcessor = (InitializeProcessor_ptr)GetProcAddress(hProcDLL, "InitializeProcessor");
+	//if (hProcDLL != nullptr)
+	//{
+	//	InitializeProcessor_ptr initializeProcessor = (InitializeProcessor_ptr)GetProcAddress(hProcDLL, "InitializeProcessor");
 
-		if (initializeProcessor != nullptr)
-		{
-			numProcessors = initializeProcessor(cfg.num_threads, cfg.num_fpgas, cfg.chip_ids);
+	//	if (initializeProcessor != nullptr)
+	//	{
+	//		numProcessors = initializeProcessor(cfg.num_threads, cfg.num_fpgas, cfg.chip_ids);
 
-			if (numProcessors != 0)
-			{
-				g_InitializeScoringParameters = (InitializeScoringParameters_ptr)GetProcAddress(hProcDLL, "InitializeScoringParameters");
-				g_InitializeReferenceMemory = (InitializeReferenceMemory_ptr)GetProcAddress(hProcDLL, "InitializeReferenceMemory");
-				g_InitializeReadMemory = (InitializeReadMemory_ptr)GetProcAddress(hProcDLL, "InitializeReadMemory");
-				g_BatchAlignment = (BatchAlignment_ptr)GetProcAddress(hProcDLL, "BatchAlignment");
-				//				g_BatchAlignmentTwoPiece = (BatchAlignmentTwoPiece_ptr)GetProcAddress(hProcDLL, "BatchAlignmentTwoPiece");
-			}
-		}
-	}
+	//		if (numProcessors != 0)
+	//		{
+	//			g_InitializeScoringParameters = (InitializeScoringParameters_ptr)GetProcAddress(hProcDLL, "InitializeScoringParameters");
+	//			g_InitializeReferenceMemory = (InitializeReferenceMemory_ptr)GetProcAddress(hProcDLL, "InitializeReferenceMemory");
+	//			g_InitializeReadMemory = (InitializeReadMemory_ptr)GetProcAddress(hProcDLL, "InitializeReadMemory");
+	//			g_BatchAlignment = (BatchAlignment_ptr)GetProcAddress(hProcDLL, "BatchAlignment");
+	//			//				g_BatchAlignmentTwoPiece = (BatchAlignmentTwoPiece_ptr)GetProcAddress(hProcDLL, "BatchAlignmentTwoPiece");
+	//		}
+	//	}
+	//}
 
-	QueryPerformanceFrequency(&Frequency);
+	//QueryPerformanceFrequency(&Frequency);
 
 	//    AlignmentScoringParams params;
 
@@ -297,9 +295,9 @@ int main(int argc, char *argv[]) {
 	const size_t readBufferLimit = 1 << 6;
 
 	{
-		// LOAD REFERENCE
-		fprintf(stderr, "\nLoading reference genome ...\n");
-		QueryPerformanceCounter(&StartingTime);
+		//// LOAD REFERENCE
+		//fprintf(stderr, "\nLoading reference genome ...\n");
+		//QueryPerformanceCounter(&StartingTime);
 
 		tbb::flow::graph index_graph;
 
@@ -317,7 +315,7 @@ int main(int argc, char *argv[]) {
 		//		uint32_t* seedHistogram2 = (uint32_t*)scalable_calloc(histogramSize, sizeof(uint32_t));
 		//#endif
 
-		tbb::flow::function_node<seeder_input, seeder_input> minimizer(index_graph, tbb::flow::unlimited,
+		tbb::flow::function_node<seeder_input, seeder_input> minimizer(index_graph, 1,
 			[&](seeder_input input) {
 			Read chr = get<0>(input)[0];
 
@@ -332,7 +330,7 @@ int main(int argc, char *argv[]) {
 				[&](uint64_t p, uint32_t m) {
 				assert(m < histogramSize);
 
-				InterlockedIncrement(seedHistogram + m);
+				seedHistogram[m]++;
 
 				miniList->push_back(((uint64_t)m << 32) + p + seq_start);
 			});
@@ -423,7 +421,7 @@ int main(int argc, char *argv[]) {
 
 				if (seq_len > readBufferLimit) {
 
-					memcpy_s(g_DRAM->buffer + g_DRAM->referenceSize, g_DRAM->size - g_DRAM->referenceSize, kseq_rd->seq.s, seq_len);
+					memcpy(g_DRAM->buffer + g_DRAM->referenceSize, kseq_rd->seq.s, seq_len);
 
 					Read read;
 
@@ -477,30 +475,30 @@ int main(int argc, char *argv[]) {
 
 		g_DRAM->bufferPosition = g_DRAM->referenceSize;
 
-		fprintf(stderr, "Reference length: %lld\n", g_DRAM->referenceSize);
+		//fprintf(stderr, "Reference length: %lld\n", g_DRAM->referenceSize);
 
-		QueryPerformanceCounter(&EndingTime);
+		//QueryPerformanceCounter(&EndingTime);
 
-		ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-		ElapsedMicroseconds.QuadPart *= 1000000;
-		ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-		fprintf(stderr, "Time elapsed (loading reference genome): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
+		//ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+		//ElapsedMicroseconds.QuadPart *= 1000000;
+		//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+		//fprintf(stderr, "Time elapsed (loading reference genome): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
-		// FINALIZE SEED POSITION TABLE
-		fprintf(stderr, "\nFinalizing seed position table ...\n");
-		QueryPerformanceCounter(&StartingTime);
+		//// FINALIZE SEED POSITION TABLE
+		//fprintf(stderr, "\nFinalizing seed position table ...\n");
+		//QueryPerformanceCounter(&StartingTime);
 
 		sa = new SeedPosTable(g_DRAM->referenceSize, cfg.seed_size, cfg.minimizer_window, cfg.max_stride, cfg.seed_occurence_multiple, cfg.bin_size,
 			minimizers, seedHistogram, histogramSize);
 
 		scalable_free(seedHistogram);
 
-		QueryPerformanceCounter(&EndingTime);
+		//QueryPerformanceCounter(&EndingTime);
 
-		ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-		ElapsedMicroseconds.QuadPart *= 1000000;
-		ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-		fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
+		//ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+		//ElapsedMicroseconds.QuadPart *= 1000000;
+		//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+		//fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 	}
 
 	//// SEND REFERENCE
@@ -559,142 +557,130 @@ int main(int argc, char *argv[]) {
 	//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
 	//fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
-	fprintf(stderr, "\nAligning reads ...\n");
-	QueryPerformanceCounter(&StartingTime);
+	//fprintf(stderr, "\nAligning reads ...\n");
+	//QueryPerformanceCounter(&StartingTime);
 
-	__finddata64_t reads;
-	intptr_t handle = _findfirst64(argv[2], &reads);
-	if (handle > 0)
-	{
+	tbb::flow::graph align_graph;
+
+	tbb::flow::function_node<printer_input, Read> printer(align_graph, tbb::flow::unlimited, maf_printer_body());
+
+	extender_node extender(align_graph, tbb::flow::unlimited, extender_body());
+
+	tbb::flow::make_edge(tbb::flow::output_port<0>(extender), printer);
+
+	tbb::flow::function_node<filter_input, extender_input> filter(align_graph, tbb::flow::unlimited, filter_body());
+
+	tbb::flow::make_edge(filter, extender);
+
+	tbb::flow::function_node<seeder_input, filter_input> seeder(align_graph, tbb::flow::unlimited, seeder_body());
+
+	tbb::flow::make_edge(seeder, filter);
+
+	tbb::flow::function_node<seeder_input, seeder_input> sender(align_graph, tbb::flow::unlimited, reference_sender_body());
+
+	tbb::flow::make_edge(sender, seeder);
+
+	tbb::flow::join_node<seeder_input> gatekeeper(align_graph);
+
+	tbb::flow::make_edge(gatekeeper, sender);
+
+	tbb::flow::buffer_node<size_t> ticketer(align_graph);
+
+	// Allocate tickets
+	for (size_t t = 0ull; t < cfg.num_threads; t++)
+		//for (size_t t = 0ull; t < 1ull; t++)
+		ticketer.try_put(t);
+
+	tbb::flow::make_edge(tbb::flow::output_port<1>(extender), ticketer);
+
+	tbb::flow::make_edge(ticketer, tbb::flow::input_port<1>(gatekeeper));
+
+	gzFile f_rd = gzopen(argv[2], "r");
+	if (!f_rd) { fprintf(stderr, "cant open reads file: %s\n", argv[2]); exit(EXIT_FAILURE); }
+
+	kseq_t *kseq_rd = kseq_init(f_rd);
+
+	tbb::flow::source_node<reader_output> reader(align_graph,
+		[&](reader_output &reads) -> bool {
+
+		size_t readBufferSize = 0;
+
+		reads.clear();
+
 		while (true)
 		{
-			tbb::flow::graph align_graph;
+			if (kseq_read(kseq_rd) >= 0)
+			{
+				num_reads += 1;
 
-			tbb::flow::function_node<printer_input, Read> printer(align_graph, tbb::flow::unlimited, maf_printer_body());
-
-			extender_node extender(align_graph, tbb::flow::unlimited, extender_body());
-
-			tbb::flow::make_edge(tbb::flow::output_port<0>(extender), printer);
-
-			tbb::flow::function_node<filter_input, extender_input> filter(align_graph, tbb::flow::unlimited, filter_body());
-
-			tbb::flow::make_edge(filter, extender);
-
-			tbb::flow::function_node<seeder_input, filter_input> seeder(align_graph, tbb::flow::unlimited, seeder_body());
-
-			tbb::flow::make_edge(seeder, filter);
-
-			tbb::flow::function_node<seeder_input, seeder_input> sender(align_graph, tbb::flow::unlimited, reference_sender_body());
-
-			tbb::flow::make_edge(sender, seeder);
-
-			tbb::flow::join_node<seeder_input> gatekeeper(align_graph);
-
-			tbb::flow::make_edge(gatekeeper, sender);
-
-			tbb::flow::buffer_node<size_t> ticketer(align_graph);
-
-			// Allocate tickets
-			for (size_t t = 0ull; t < cfg.num_threads; t++)
-				//for (size_t t = 0ull; t < 1ull; t++)
-				ticketer.try_put(t);
-
-			tbb::flow::make_edge(tbb::flow::output_port<1>(extender), ticketer);
-
-			tbb::flow::make_edge(ticketer, tbb::flow::input_port<1>(gatekeeper));
-
-			gzFile f_rd = gzopen(reads.name, "r");
-			if (!f_rd) { fprintf(stderr, "cant open reads file: %s\n", argv[2]); exit(EXIT_FAILURE); }
-
-			kseq_t *kseq_rd = kseq_init(f_rd);
-
-			tbb::flow::source_node<reader_output> reader(align_graph,
-				[&](reader_output &reads) -> bool {
-
-				size_t readBufferSize = 0;
-
-				reads.clear();
-
-				while (true)
+				// align on word size
+				size_t extra = g_DRAM->bufferPosition % WORD_SIZE;
+				if (extra != 0)
 				{
-					if (kseq_read(kseq_rd) >= 0)
-					{
-						num_reads += 1;
+					extra = WORD_SIZE - extra;
 
-						// align on word size
-						size_t extra = g_DRAM->bufferPosition % WORD_SIZE;
-						if (extra != 0)
-						{
-							extra = WORD_SIZE - extra;
-
-							g_DRAM->bufferPosition += extra;
-						}
-
-						size_t seq_len = kseq_rd->seq.l;
-
-						if (seq_len > readBufferLimit) {
-							// Wrap around if we have reached the end of the buffer
-							if (g_DRAM->bufferPosition + WORD_SIZE + seq_len > g_DRAM->size)
-							{
-								g_DRAM->bufferPosition = g_DRAM->referenceSize;
-							}
-
-							memcpy_s(g_DRAM->buffer + g_DRAM->bufferPosition, g_DRAM->size - g_DRAM->bufferPosition, kseq_rd->seq.s, seq_len);
-
-							Read read;
-
-							read.description = std::string(kseq_rd->name.s, kseq_rd->name.l);
-
-							read.seq = bond::blob(g_DRAM->buffer + g_DRAM->bufferPosition, seq_len);
-							char *rev_read_char = RevComp(read.seq);
-							read.rc_seq = bond::blob(rev_read_char, seq_len);
-
-							extra = seq_len % WORD_SIZE;
-							if (extra != 0)
-							{
-								extra = WORD_SIZE - extra;
-								memset(g_DRAM->buffer + g_DRAM->bufferPosition + seq_len, 'N', extra);
-
-								seq_len += extra;
-							}
-
-							g_DRAM->bufferPosition += seq_len;
-
-							readBufferSize += seq_len;
-
-							reads.push_back(read);
-						}
-
-						if ((readBufferSize > readBufferLimit) || (kseq_rd->f->is_eof))
-						{
-							return true;
-						}
-					}
-					else
-					{
-						return false;
-					}
+					g_DRAM->bufferPosition += extra;
 				}
-			}, true);
 
-			tbb::flow::make_edge(reader, tbb::flow::input_port<0>(gatekeeper));
+				size_t seq_len = kseq_rd->seq.l;
 
-			align_graph.wait_for_all();
+				if (seq_len > readBufferLimit) {
+					// Wrap around if we have reached the end of the buffer
+					if (g_DRAM->bufferPosition + WORD_SIZE + seq_len > g_DRAM->size)
+					{
+						g_DRAM->bufferPosition = g_DRAM->referenceSize;
+					}
 
-			gzclose(f_rd);
+					std::memcpy(g_DRAM->buffer + g_DRAM->bufferPosition, kseq_rd->seq.s, seq_len);
 
-			if (_findnext64(handle, &reads) != 0) {
-				break;
+					Read read;
+
+					read.description = std::string(kseq_rd->name.s, kseq_rd->name.l);
+
+					read.seq = bond::blob(g_DRAM->buffer + g_DRAM->bufferPosition, seq_len);
+					char *rev_read_char = RevComp(read.seq);
+					read.rc_seq = bond::blob(rev_read_char, seq_len);
+
+					extra = seq_len % WORD_SIZE;
+					if (extra != 0)
+					{
+						extra = WORD_SIZE - extra;
+						memset(g_DRAM->buffer + g_DRAM->bufferPosition + seq_len, 'N', extra);
+
+						seq_len += extra;
+					}
+
+					g_DRAM->bufferPosition += seq_len;
+
+					readBufferSize += seq_len;
+
+					reads.push_back(read);
+				}
+
+				if ((readBufferSize > readBufferLimit) || (kseq_rd->f->is_eof))
+				{
+					return true;
+				}
+			}
+			else
+			{
+				return false;
 			}
 		}
-	}
+	}, true);
 
-	QueryPerformanceCounter(&EndingTime);
+	tbb::flow::make_edge(reader, tbb::flow::input_port<0>(gatekeeper));
 
-	ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-	ElapsedMicroseconds.QuadPart *= 1000000;
-	ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-	fprintf(stderr, "Time elapsed (aligning reads): %lld msec\n\n", (ElapsedMicroseconds.QuadPart / 1000));
+	align_graph.wait_for_all();
+
+	gzclose(f_rd);
+
+	//QueryPerformanceCounter(&EndingTime);
+
+	//ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+	//ElapsedMicroseconds.QuadPart *= 1000000;
+	//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+	//fprintf(stderr, "Time elapsed (aligning reads): %lld msec\n\n", (ElapsedMicroseconds.QuadPart / 1000));
 
 	std::cerr << "#reads: " << num_reads << std::endl;
 	std::cerr << "#filter tiles: " << filter_body::num_filter_tiles << std::endl;

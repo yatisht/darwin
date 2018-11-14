@@ -1,12 +1,10 @@
 #define NOMINMAX
-#include <windows.h>
-#include <winbase.h>
-
 #include <algorithm>
-#include "tbb\parallel_scan.h"
-#include "tbb\parallel_sort.h"
-#include "tbb\blocked_range.h"
-#include "tbb\scalable_allocator.h"
+
+#include "tbb/parallel_scan.h"
+#include "tbb/parallel_sort.h"
+#include "tbb/blocked_range.h"
+#include "tbb/scalable_allocator.h"
 
 #include "seed_pos_table.h"
 #include "Processor.h"
@@ -33,7 +31,7 @@ bool SeedPosTable::IsPresent(uint32_t index) {
 
 
 template <size_t __N>
-__forceinline __m256i _mm256_shift_left_si256(__m256i a) {
+inline __m256i _mm256_shift_left_si256(__m256i a) {
 	__m256i c = _mm256_permute2x128_si256(a, a, 0x08);
 	return _mm256_alignr_epi8(a, c, 16 - __N);
 }
@@ -123,26 +121,44 @@ SeedPosTable::SeedPosTable(uint32_t ref_length, const int seed_size, const int m
 	// Bucket sort
 	seedPositions = (uint32_t*)scalable_malloc(seedCount * sizeof(uint32_t));
 
-	tbb::parallel_for(tbb::blocked_range<std::size_t>(0, minimizers.size()),
-		[&](const tbb::blocked_range<std::size_t> &r) {
-		for (std::size_t chr = r.begin(); chr < r.end(); chr++)
+	for (std::size_t chr = 0; chr <  minimizers.size(); chr++)
+	{
+		auto miniList = minimizers[chr];
+
+		const uint32_t localCount = miniList.size();
+
+		for (uint32_t i = 0; i < localCount; i++)
 		{
-			auto miniList = minimizers[chr];
+			uint64_t minimizer = miniList[i];
 
-			const uint32_t localCount = miniList.size();
+			uint32_t pos = ((minimizer << 32) >> 32);
+			uint32_t seed = (minimizer >> 32);
 
-			for (uint32_t i = 0; i < localCount; i++)
-			{
-				uint64_t minimizer = miniList[i];
-
-				uint32_t pos = ((minimizer << 32) >> 32);
-				uint32_t seed = (minimizer >> 32);
-
-				uint32_t posIndex = seedBuckets[seed] + InterlockedDecrement(seedHistogram + seed);
-				seedPositions[posIndex] = pos;
-			}
+			uint32_t posIndex = seedBuckets[seed] + (--seedHistogram[seed]);
+			seedPositions[posIndex] = pos;
 		}
-	});
+	}
+
+	//tbb::parallel_for(tbb::blocked_range<std::size_t>(0, minimizers.size()),
+	//	[&](const tbb::blocked_range<std::size_t> &r) {
+	//	for (std::size_t chr = r.begin(); chr < r.end(); chr++)
+	//	{
+	//		auto miniList = minimizers[chr];
+
+	//		const uint32_t localCount = miniList.size();
+
+	//		for (uint32_t i = 0; i < localCount; i++)
+	//		{
+	//			uint64_t minimizer = miniList[i];
+
+	//			uint32_t pos = ((minimizer << 32) >> 32);
+	//			uint32_t seed = (minimizer >> 32);
+
+	//			uint32_t posIndex = seedBuckets[seed] + InterlockedDecrement(seedHistogram + seed);
+	//			seedPositions[posIndex] = pos;
+	//		}
+	//	}
+	//});
 
 	// sort buckets by position
 	tbb::parallel_for(tbb::blocked_range<std::size_t>(0, histogramSize),
