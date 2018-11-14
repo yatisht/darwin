@@ -3,9 +3,9 @@
 #define NOMINMAX
 #include <algorithm>
 
-#include <tbb\flow_graph.h>
-#include <tbb\reader_writer_lock.h>
-#include <tbb\scalable_allocator.h>
+#include <tbb/flow_graph.h>
+#include <tbb/reader_writer_lock.h>
+#include <tbb/scalable_allocator.h>
 #include <mutex>
 
 #include "ntcoding.h"

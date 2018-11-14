@@ -30,7 +30,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 			for (int b = 0; b < first_extension_batch_size; b++)
 			{
 				//Add to batch here
-				ExtendAlignments extend_alignment = makeForwardAlignment(reads, loc++);
+				ExtendAlignments extend_alignment = makeForwardAlignment(reads, loc);
+                loc++;
 
 				extend_alignments.push_back(extend_alignment);
 			}
@@ -368,7 +369,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 
                                         // check if more elements in queue
                                         if (loc != f_extend_locations.cend()) {
-                                            extend_alignments[idx] = makeForwardAlignment(reads, loc++);
+                                            extend_alignments[idx] = makeForwardAlignment(reads, loc);
+                                            loc++;
                                         }
                                         else {
                                             tiles_active--;
@@ -495,7 +497,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 
                                     // check if more elements in queue
                                     if (loc != f_extend_locations.cend()) {
-                                        extend_alignments[idx] = makeForwardAlignment(reads, loc++);
+                                        extend_alignments[idx] = makeForwardAlignment(reads, loc);
+                                        loc++;
                                     }
                                     else{
                                         tiles_active--;
@@ -536,7 +539,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 			// first batch
 			for (int b = 0; b < first_extension_batch_size; b++) {
 				//Add to batch here
-				ExtendAlignments extend_alignment = makeBackwardAlignment(reads, loc++);
+				ExtendAlignments extend_alignment = makeBackwardAlignment(reads, loc);
+                loc++;
 				extend_alignments.push_back(extend_alignment);
 			}
 
@@ -878,7 +882,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                         // check if more elements in queue
                                         if (loc != rc_extend_locations.cend()) {
                                             // modify request vector
-                                            extend_alignments[idx] = makeBackwardAlignment(reads, loc++);
+                                            extend_alignments[idx] = makeBackwardAlignment(reads, loc);
+                                            loc++;
                                         }
                                         else {
                                             tiles_active--;
@@ -1005,7 +1010,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     // check if more elements in queue
                                     if (loc != rc_extend_locations.cend()) {
                                         // modify request vector
-                                        extend_alignments[idx] = makeBackwardAlignment(reads, loc++);
+                                        extend_alignments[idx] = makeBackwardAlignment(reads, loc);
+                                        loc++;
                                     }
                                     else {
                                         tiles_active--;

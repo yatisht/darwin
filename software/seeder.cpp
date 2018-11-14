@@ -1,7 +1,7 @@
 #include "graph.h"
 
-#include "tbb\mutex.h"
-#include "tbb\parallel_for_each.h"
+#include "tbb/mutex.h"
+#include "tbb/parallel_for_each.h"
 
 filter_input seeder_body::operator()(seeder_input input)
 {

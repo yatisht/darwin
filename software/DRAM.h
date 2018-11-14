@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 #define WORD_SIZE 128
 
@@ -6,10 +7,10 @@ class DRAM
 {
 public:
 	char* buffer;
-	size_t size;
+	std::size_t size;
 
-	size_t referenceSize;
-	size_t bufferPosition;
+	std::size_t referenceSize;
+	std::size_t bufferPosition;
 public:
 	DRAM();
 	~DRAM();
