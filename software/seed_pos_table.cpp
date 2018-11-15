@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include <algorithm>
+#include <deque>
 
 #include "tbb/parallel_scan.h"
 #include "tbb/parallel_sort.h"

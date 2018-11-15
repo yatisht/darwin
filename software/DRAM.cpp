@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "tbb/scalable_allocator.h"
+#include "tbb/tbb.h"
 
 DRAM::DRAM()
 	: size(4ull * 1024ull * 1024ull * 1024ull),

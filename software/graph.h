@@ -65,7 +65,7 @@ struct Configuration {
     //FPGA
 	std::string processor_library;
     int num_fpgas;
-    std::string chip_ids;
+//    std::string chip_ids;
 };
 
 extern Configuration cfg;

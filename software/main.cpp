@@ -18,7 +18,8 @@
 
 #include "zlib.h"
 #include "kseq.h"
-#include "INIReader.h"
+//#include "INIReader.h"
+#include "ConfigFile.h"
 #include "ntcoding.h"
 #include "seed_pos_table.h"
 #include "Processor.h"
@@ -167,64 +168,65 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	INIReader cfg_file("params.cfg");
+//	INIReader cfg_file("params.cfg");
+    ConfigFile cfg_file("params.cfg");
 
 	fprintf(stderr, "Reading configuration ... \n");
 
 	// GACT scoring
-	cfg.gact_sub_mat[0] = cfg_file.GetInteger("GACT_scoring", "sub_AA", 2);
-	cfg.gact_sub_mat[1] = cfg_file.GetInteger("GACT_scoring", "sub_AC", -6);
-	cfg.gact_sub_mat[2] = cfg_file.GetInteger("GACT_scoring", "sub_AG", -6);
-	cfg.gact_sub_mat[3] = cfg_file.GetInteger("GACT_scoring", "sub_AT", -6);
+	cfg.gact_sub_mat[0] = cfg_file.Value("GACT_scoring", "sub_AA");
+	cfg.gact_sub_mat[1] = cfg_file.Value("GACT_scoring", "sub_AC");
+	cfg.gact_sub_mat[2] = cfg_file.Value("GACT_scoring", "sub_AG");
+	cfg.gact_sub_mat[3] = cfg_file.Value("GACT_scoring", "sub_AT");
 
-	cfg.gact_sub_mat[4] = cfg_file.GetInteger("GACT_scoring", "sub_CC", 2);
-	cfg.gact_sub_mat[5] = cfg_file.GetInteger("GACT_scoring", "sub_CG", -6);
-	cfg.gact_sub_mat[6] = cfg_file.GetInteger("GACT_scoring", "sub_CT", -6);
+	cfg.gact_sub_mat[4] = cfg_file.Value("GACT_scoring", "sub_CC");
+	cfg.gact_sub_mat[5] = cfg_file.Value("GACT_scoring", "sub_CG");
+	cfg.gact_sub_mat[6] = cfg_file.Value("GACT_scoring", "sub_CT");
 
-	cfg.gact_sub_mat[7] = cfg_file.GetInteger("GACT_scoring", "sub_GG", 2);
-	cfg.gact_sub_mat[8] = cfg_file.GetInteger("GACT_scoring", "sub_GT", -6);
+	cfg.gact_sub_mat[7] = cfg_file.Value("GACT_scoring", "sub_GG");
+	cfg.gact_sub_mat[8] = cfg_file.Value("GACT_scoring", "sub_GT");
 
-	cfg.gact_sub_mat[9] = cfg_file.GetInteger("GACT_scoring", "sub_TT", 2);
+	cfg.gact_sub_mat[9] = cfg_file.Value("GACT_scoring", "sub_TT");
 
-	cfg.gact_sub_mat[10] = cfg_file.GetInteger("GACT_scoring", "sub_N", -1);
+	cfg.gact_sub_mat[10] = cfg_file.Value("GACT_scoring", "sub_N");
 
-	cfg.gap_open = cfg_file.GetInteger("GACT_scoring", "gap_open", -4);
-	cfg.gap_extend = cfg_file.GetInteger("GACT_scoring", "gap_extend", -2);
+	cfg.gap_open = cfg_file.Value("GACT_scoring", "gap_open");
+	cfg.gap_extend = cfg_file.Value("GACT_scoring", "gap_extend");
 
-	cfg.long_gap_open = cfg_file.GetInteger("GACT_scoring", "long_gap_open", -25);
-	cfg.long_gap_extend = cfg_file.GetInteger("GACT_scoring", "long_gap_extend", -1);
+	cfg.long_gap_open = cfg_file.Value("GACT_scoring", "long_gap_open");
+	cfg.long_gap_extend = cfg_file.Value("GACT_scoring", "long_gap_extend");
 
 	// D-SOFT parameters
-	cfg.seed_size = cfg_file.GetInteger("DSOFT_params", "seed_size", 15);
-	cfg.minimizer_window = cfg_file.GetInteger("DSOFT_params", "minimizer_window", 9);
-	cfg.bin_size = cfg_file.GetInteger("DSOFT_params", "bin_size", 64);
-	cfg.dsoft_threshold = cfg_file.GetInteger("DSOFT_params", "threshold", 30);
-	cfg.num_seeds = cfg_file.GetInteger("DSOFT_params", "num_seeds", 500);
-	cfg.seed_occurence_multiple = cfg_file.GetInteger("DSOFT_params", "seed_occurence_multiple", 16);
-	cfg.max_candidates = cfg_file.GetInteger("DSOFT_params", "max_candidates", 1000);
-	cfg.max_stride = cfg_file.GetInteger("DSOFT_params", "max_stride", 4);
+	cfg.seed_size = cfg_file.Value("DSOFT_params", "seed_size");
+	cfg.minimizer_window = cfg_file.Value("DSOFT_params", "minimizer_window");
+	cfg.bin_size = cfg_file.Value("DSOFT_params", "bin_size");
+	cfg.dsoft_threshold = cfg_file.Value("DSOFT_params", "threshold");
+	cfg.num_seeds = cfg_file.Value("DSOFT_params", "num_seeds");
+	cfg.seed_occurence_multiple = cfg_file.Value("DSOFT_params", "seed_occurence_multiple");
+	cfg.max_candidates = cfg_file.Value("DSOFT_params", "max_candidates");
+	cfg.max_stride = cfg_file.Value("DSOFT_params", "max_stride");
     cfg.do_overlap = do_overlap;
-	cfg.ignore_lower = cfg_file.GetBoolean("DSOFT_params", "ignore_lower", false);
+//	cfg.ignore_lower = cfg_file.GetBoolean("DSOFT_params", "ignore_lower");
 
 	// GACT first tile
-	cfg.first_tile_size = cfg_file.GetInteger("GACT_first_tile", "first_tile_size", 128);
-	cfg.first_tile_score_threshold = cfg_file.GetInteger("GACT_first_tile", "first_tile_score_threshold", 80);
-	cfg.first_tile_batch_size = cfg_file.GetInteger("GACT_first_tile", "first_tile_batch_size", 64);
-	cfg.min_overlap = cfg_file.GetInteger("GACT_first_tile", "min_overlap", 0);
-	cfg.slope_threshold = cfg_file.GetReal("GACT_first_tile", "slope_threshold", 0.15);
+	cfg.first_tile_size = cfg_file.Value("GACT_first_tile", "first_tile_size");
+	cfg.first_tile_score_threshold = cfg_file.Value("GACT_first_tile", "first_tile_score_threshold");
+	cfg.first_tile_batch_size = cfg_file.Value("GACT_first_tile", "first_tile_batch_size");
+	cfg.min_overlap = cfg_file.Value("GACT_first_tile", "min_overlap");
+	cfg.slope_threshold = 0.15; // cfg_file.GetReal("GACT_first_tile", "slope_threshold");
 
 	// GACT extend
-	cfg.tile_size = cfg_file.GetInteger("GACT_extend", "tile_size", 384);
-	cfg.tile_overlap = cfg_file.GetInteger("GACT_extend", "tile_overlap", 64);
-	cfg.batch_size = cfg_file.GetInteger("GACT_extend", "batch_size", 2);
+	cfg.tile_size = cfg_file.Value("GACT_extend", "tile_size");
+	cfg.tile_overlap = cfg_file.Value("GACT_extend", "tile_overlap");
+	cfg.batch_size = cfg_file.Value("GACT_extend", "batch_size");
 
 	// Multi-threading
-	cfg.num_threads = cfg_file.GetInteger("Multithreading", "num_threads", 1);
+	cfg.num_threads = cfg_file.Value("Multithreading", "num_threads");
 
 	// FPGA
-	cfg.processor_library = cfg_file.Get("FPGA", "processor_library", "None");
-	cfg.num_fpgas = cfg_file.GetInteger("FPGA", "num_fpgas", 1);
-	cfg.chip_ids = cfg_file.Get("FPGA", "chip_ids", "0");
+//	cfg.processor_library = cfg_file.Get("FPGA", "processor_library");
+//	cfg.num_fpgas = cfg_file.Value("FPGA", "num_fpgas");
+//	cfg.chip_ids = cfg_file.Get("FPGA", "chip_ids", "0");
 
 	//HINSTANCE hProcDLL = LoadLibraryA(cfg.processor_library.c_str());
 
@@ -296,7 +298,7 @@ int main(int argc, char *argv[]) {
 
 	{
 		//// LOAD REFERENCE
-		//fprintf(stderr, "\nLoading reference genome ...\n");
+		fprintf(stderr, "\nLoading reference genome ...\n");
 		//QueryPerformanceCounter(&StartingTime);
 
 		tbb::flow::graph index_graph;
@@ -475,17 +477,17 @@ int main(int argc, char *argv[]) {
 
 		g_DRAM->bufferPosition = g_DRAM->referenceSize;
 
-		//fprintf(stderr, "Reference length: %lld\n", g_DRAM->referenceSize);
+		fprintf(stderr, "Reference length: %lld\n", g_DRAM->referenceSize);
 
 		//QueryPerformanceCounter(&EndingTime);
 
 		//ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
 		//ElapsedMicroseconds.QuadPart *= 1000000;
 		//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-		//fprintf(stderr, "Time elapsed (loading reference genome): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
+//		fprintf(stderr, "Time elapsed (loading reference genome): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
 		//// FINALIZE SEED POSITION TABLE
-		//fprintf(stderr, "\nFinalizing seed position table ...\n");
+		fprintf(stderr, "\nFinalizing seed position table ...\n");
 		//QueryPerformanceCounter(&StartingTime);
 
 		sa = new SeedPosTable(g_DRAM->referenceSize, cfg.seed_size, cfg.minimizer_window, cfg.max_stride, cfg.seed_occurence_multiple, cfg.bin_size,
@@ -503,7 +505,7 @@ int main(int argc, char *argv[]) {
 
 	//// SEND REFERENCE
 	//QueryPerformanceCounter(&StartingTime);
-	//fprintf(stderr, "\nSending reference ...\n");
+	fprintf(stderr, "\nSending reference ...\n");
 
 	//int word_size = WORD_SIZE;
 	//int num_bytes_to_send = 0;
@@ -545,7 +547,7 @@ int main(int argc, char *argv[]) {
 	//fprintf(stderr, "Time elapsed (sending reference): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
 	//// CONSTRUCT SEED POSITION TABLE
-	//fprintf(stderr, "\nConstructing seed position table ...\n");
+	fprintf(stderr, "\nConstructing seed position table ...\n");
 	//QueryPerformanceCounter(&StartingTime);
 
 	//sa = new SeedPosTable(g_DRAM->buffer, g_DRAM->referenceSize, cfg.seed_size, cfg.minimizer_window, cfg.seed_occurence_multiple, cfg.bin_size);
@@ -555,9 +557,9 @@ int main(int argc, char *argv[]) {
 	//ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
 	//ElapsedMicroseconds.QuadPart *= 1000000;
 	//ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-	//fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
+//	fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
-	//fprintf(stderr, "\nAligning reads ...\n");
+	fprintf(stderr, "\nAligning reads ...\n");
 	//QueryPerformanceCounter(&StartingTime);
 
 	tbb::flow::graph align_graph;

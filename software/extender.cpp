@@ -1,3 +1,4 @@
+#include <atomic>
 #include "graph.h"
 
 std::atomic<int> extender_body::num_extend_tiles(0);

@@ -1,3 +1,4 @@
+#include <atomic>
 #include "graph.h"
 
 std::atomic<int> filter_body::num_filter_tiles(0);
