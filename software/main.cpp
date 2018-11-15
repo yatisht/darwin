@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
 	cfg.first_tile_score_threshold = cfg_file.Value("GACT_first_tile", "first_tile_score_threshold");
 	cfg.first_tile_batch_size = cfg_file.Value("GACT_first_tile", "first_tile_batch_size");
 	cfg.min_overlap = cfg_file.Value("GACT_first_tile", "min_overlap");
-	cfg.slope_threshold = 0.15; // cfg_file.GetReal("GACT_first_tile", "slope_threshold");
+	cfg.slope_threshold = (float) cfg_file.Value("GACT_first_tile", "slope_threshold");
 
 	// GACT extend
 	cfg.tile_size = cfg_file.Value("GACT_extend", "tile_size");
