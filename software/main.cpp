@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include <iostream>
 #include <string>
@@ -46,8 +46,8 @@ Configuration cfg;
 
 using namespace Darwin;
 
-clock_t start_time, end_time;
-double total_time;
+struct timeval start, end_time;
+long useconds, seconds, mseconds;
 
 //LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
 //LARGE_INTEGER Frequency;
@@ -157,6 +157,9 @@ AlignmentInputFieldsDRAM GenerateAlignmentInput(int ref_size, int query_size, in
 	input.max_tb_steps = 2 * tile_size;
 	input.score_threshold = 0;
 
+	input.max_tb_steps = 2 * tile_size;
+	input.score_threshold = 0;
+
 	input.align_fields = (reverse_ref << 4) + (complement_ref << 3) + (reverse_query << 2) + (complement_query << 1) + start_end;
 
 	return input;
@@ -240,9 +243,6 @@ int main(int argc, char *argv[]) {
 	//	{
 	//		numProcessors = initializeProcessor(cfg.num_threads, cfg.num_fpgas, cfg.chip_ids);
 
-	//		if (numProcessors != 0)
-	//		{
-	//			g_InitializeScoringParameters = (InitializeScoringParameters_ptr)GetProcAddress(hProcDLL, "InitializeScoringParameters");
 	//			g_InitializeReferenceMemory = (InitializeReferenceMemory_ptr)GetProcAddress(hProcDLL, "InitializeReferenceMemory");
 	//			g_InitializeReadMemory = (InitializeReadMemory_ptr)GetProcAddress(hProcDLL, "InitializeReadMemory");
 	//			g_BatchAlignment = (BatchAlignment_ptr)GetProcAddress(hProcDLL, "BatchAlignment");
@@ -299,6 +299,7 @@ int main(int argc, char *argv[]) {
 	{
 		//// LOAD REFERENCE
 		fprintf(stderr, "\nLoading reference genome ...\n");
+        gettimeofday(&start, NULL);
 		//QueryPerformanceCounter(&StartingTime);
 
 		tbb::flow::graph index_graph;
@@ -478,6 +479,15 @@ int main(int argc, char *argv[]) {
 		g_DRAM->bufferPosition = g_DRAM->referenceSize;
 
 		fprintf(stderr, "Reference length: %lld\n", g_DRAM->referenceSize);
+        
+        gettimeofday(&end_time, NULL);
+
+        useconds = end_time.tv_usec - start.tv_usec;
+        seconds = end_time.tv_sec - start.tv_sec;
+        mseconds = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+
+        std::cerr << "Time elapsed (loading reference): " << mseconds <<" msec" << std::endl;
+
 
 		//QueryPerformanceCounter(&EndingTime);
 
@@ -488,12 +498,22 @@ int main(int argc, char *argv[]) {
 
 		//// FINALIZE SEED POSITION TABLE
 		fprintf(stderr, "\nFinalizing seed position table ...\n");
+        gettimeofday(&start, NULL);
 		//QueryPerformanceCounter(&StartingTime);
 
 		sa = new SeedPosTable(g_DRAM->referenceSize, cfg.seed_size, cfg.minimizer_window, cfg.max_stride, cfg.seed_occurence_multiple, cfg.bin_size,
 			minimizers, seedHistogram, histogramSize);
 
 		scalable_free(seedHistogram);
+        
+        gettimeofday(&end_time, NULL);
+
+        useconds = end_time.tv_usec - start.tv_usec;
+        seconds = end_time.tv_sec - start.tv_sec;
+        mseconds = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+
+        std::cerr << "Time elapsed (finalizing seed position table): " << mseconds <<" msec" << std::endl;
+
 
 		//QueryPerformanceCounter(&EndingTime);
 
@@ -505,7 +525,7 @@ int main(int argc, char *argv[]) {
 
 	//// SEND REFERENCE
 	//QueryPerformanceCounter(&StartingTime);
-	fprintf(stderr, "\nSending reference ...\n");
+//	fprintf(stderr, "\nSending reference ...\n");
 
 	//int word_size = WORD_SIZE;
 	//int num_bytes_to_send = 0;
@@ -547,7 +567,7 @@ int main(int argc, char *argv[]) {
 	//fprintf(stderr, "Time elapsed (sending reference): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
 	//// CONSTRUCT SEED POSITION TABLE
-	fprintf(stderr, "\nConstructing seed position table ...\n");
+//	fprintf(stderr, "\nConstructing seed position table ...\n");
 	//QueryPerformanceCounter(&StartingTime);
 
 	//sa = new SeedPosTable(g_DRAM->buffer, g_DRAM->referenceSize, cfg.seed_size, cfg.minimizer_window, cfg.seed_occurence_multiple, cfg.bin_size);
@@ -560,15 +580,17 @@ int main(int argc, char *argv[]) {
 //	fprintf(stderr, "Time elapsed (seed position table construction): %lld msec\n", (ElapsedMicroseconds.QuadPart / 1000));
 
 	fprintf(stderr, "\nAligning reads ...\n");
+    gettimeofday(&start, NULL);
 	//QueryPerformanceCounter(&StartingTime);
 
 	tbb::flow::graph align_graph;
 
-	tbb::flow::function_node<printer_input, Read> printer(align_graph, tbb::flow::unlimited, maf_printer_body());
+	tbb::flow::function_node<printer_input, size_t> printer(align_graph, tbb::flow::unlimited, maf_printer_body());
 
 	extender_node extender(align_graph, tbb::flow::unlimited, extender_body());
 
 	tbb::flow::make_edge(tbb::flow::output_port<0>(extender), printer);
+//	tbb::flow::make_edge(extender, printer);
 
 	tbb::flow::function_node<filter_input, extender_input> filter(align_graph, tbb::flow::unlimited, filter_body());
 
@@ -691,6 +713,14 @@ int main(int argc, char *argv[]) {
 	std::cerr << "#extend tiles: " << extender_body::num_extend_tiles << std::endl;
 	std::cerr << "#active tiles: " << extender_body::num_active_tiles << std::endl;
 	std::cerr << "#large tiles: " << extender_body::num_large_tiles << std::endl;
+
+    gettimeofday(&end_time, NULL);
+
+    useconds = end_time.tv_usec - start.tv_usec;
+    seconds = end_time.tv_sec - start.tv_sec;
+    mseconds = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    
+    std::cerr << "Time elapsed (aligning reads): " << mseconds <<" msec" << std::endl;
 
 	return 0;
 }

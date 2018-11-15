@@ -144,7 +144,14 @@ struct filter_data
 typedef tbb::flow::tuple<reader_output, filter_data> extender_payload;
 typedef tbb::flow::tuple<extender_payload, size_t> extender_input;
 
-typedef std::pair<Read, ExtendAlignments> printer_input;
+struct extend_data
+{
+	std::vector<ExtendAlignments> extend_alignments;
+};
+typedef tbb::flow::tuple<reader_output, extend_data> printer_payload;
+typedef tbb::flow::tuple<printer_payload, size_t> printer_input;
+//typedef std::pair<Read, ExtendAlignments> printer_input;
+//typedef std::pair<Read, size_t> printer_input;
 
 typedef tbb::flow::tuple<printer_input, size_t> extender_output;
 
@@ -152,7 +159,7 @@ typedef tbb::flow::multifunction_node<extender_input, extender_output> extender_
 
 struct maf_printer_body
 {
-	Read operator()(printer_input input);
+	size_t operator()(printer_input input);
 };
 
 //extern tbb::reader_writer_lock fpga_writer_lock;
@@ -191,6 +198,7 @@ struct extender_body
 	static std::atomic<int> num_active_tiles;
 	static std::atomic<int> num_large_tiles;
 
+//	printer_input operator()(extender_input input, extender_node::output_ports_type &op);
 	void operator()(extender_input input, extender_node::output_ports_type &op);
 	ExtendAlignments makeForwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc);
 	ExtendAlignments makeBackwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc);

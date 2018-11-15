@@ -5,6 +5,7 @@ std::atomic<int> extender_body::num_extend_tiles(0);
 std::atomic<int> extender_body::num_active_tiles(0);
 std::atomic<int> extender_body::num_large_tiles(0);
 
+//printer_input extender_body::operator()(extender_input input, extender_node::output_ports_type &op)
 void extender_body::operator()(extender_input input, extender_node::output_ports_type &op)
 	{
 		auto &payload = get<0>(input);
@@ -14,6 +15,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 		auto &data = get<1>(payload);
 
 		size_t token = get<1>(input);
+
+        extend_data output;
 
 		// Forward reads
 		{
@@ -490,7 +493,9 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     e.query_end_offset = e.curr_query_offset - 1;
 
                                     // Send alignment to printer
-                                    get<0>(op).try_put(printer_input(read, e));
+//                                    get<0>(op).try_put(printer_input(read, e));
+//                                    get<0>(op).try_put(printer_input(token));
+                                    output.extend_alignments.push_back(e);
 
                                     e.right_extension_done = 1;
                                     num_extensions_remaining--;
@@ -874,7 +879,9 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     }
                                     else {
                                         // Send alignment to printer
-                                        get<0>(op).try_put(printer_input(read, e));
+//                                        get<0>(op).try_put(printer_input(read, e));
+//                                        get<0>(op).try_put(printer_input(token));
+                                        output.extend_alignments.push_back(e);
 
                                         e.right_extension_done = 1;
                                         num_extensions_remaining--;
@@ -1002,7 +1009,9 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     e.query_end_offset = e.curr_query_offset - 1;
 
                                     // Send alignment to printer
-                                    get<0>(op).try_put(printer_input(read, e));
+//                                    get<0>(op).try_put(printer_input(read, e));
+//                                    get<0>(op).try_put(printer_input(token));
+                                    output.extend_alignments.push_back(e);
 
                                     e.right_extension_done = 1;
                                     num_extensions_remaining--;
@@ -1047,6 +1056,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 		}
 
 		get<1>(op).try_put(token);
+        get<0>(op).try_put(printer_input(printer_payload(reads, output), token));
+//		return printer_input(printer_payload(reads, output), token);
 	}
 
 	ExtendAlignments  extender_body::makeForwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc)

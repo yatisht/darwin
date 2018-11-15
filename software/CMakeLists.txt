@@ -4,7 +4,7 @@ project (Darwin)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -mbmi2 -msse4.2 -mavx2 -ltbb -ltbbmalloc")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -mbmi2 -msse4.2 -mavx2 -ltbb -ltbbmalloc")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pg -mbmi2 -msse4.2 -mavx2 -ltbb -ltbbmalloc")
 
 #find_package(bond REQUIRED)
 find_package(TBB CONFIG REQUIRED)
