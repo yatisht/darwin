@@ -110,9 +110,11 @@ struct ExtendAlignments {
 	int left_extension_done;
 	int right_extension_done;
     bool used_large_tile;
+    bool do_print;
 	char strand;
 	std::string aligned_reference_str;
 	std::string aligned_query_str;
+    int score;
     vector<uint64_t> left_hit_offsets;
 	vector<uint64_t> right_hit_offsets;
 };
@@ -202,4 +204,5 @@ struct extender_body
 	void operator()(extender_input input, extender_node::output_ports_type &op);
 	ExtendAlignments makeForwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc);
 	ExtendAlignments makeBackwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc);
+    int AlignmentScore(std::string r, std::string q);
 };

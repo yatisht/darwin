@@ -515,25 +515,25 @@ std::vector<Anchors> SeedPosTable::DSOFT(char* query, uint32_t query_length, int
 
 			final_anchors.push_back(*a1);
 
-			if ((num_secondary_chains > 5) && (overlap == 1)) {
-				break;
+			if ((num_secondary_chains > 10) && (overlap == 0)) {
+//				break;
 			}
 
-            if (overlap == 1) {
-                for (auto a2 = a1 + 1; a2 != anchors.end(); a2++)
-                {
-                    float r1 = (a1->hit_offset >> 32);
-                    float q1 = ((a1->hit_offset << 32) >> 32);
-                    float r2 = (a2->hit_offset >> 32);
-                    float q2 = ((a2->hit_offset << 32) >> 32);
-
-                    float slope = std::abs((r1 - r2) / (q1 - q2) - 1);
-                    if (std::abs((r1 - r2) / (q1 - q2) - 1) <= 0.15)
-                    {
-                        a2->num_chained_hits = -1;
-                    }
-                }
-            }
+//            if (overlap == 0) {
+//                for (auto a2 = a1 + 1; a2 != anchors.end(); a2++)
+//                {
+//                    float r1 = (a1->hit_offset >> 32);
+//                    float q1 = ((a1->hit_offset << 32) >> 32);
+//                    float r2 = (a2->hit_offset >> 32);
+//                    float q2 = ((a2->hit_offset << 32) >> 32);
+//
+//                    float slope = std::abs((r1 - r2) / (q1 - q2) - 1);
+//                    if (std::abs((r1 - r2) / (q1 - q2) - 1) <= 0.15)
+//                    {
+//                        a2->num_chained_hits = -1;
+//                    }
+//                }
+//            }
 		}
 
 	}

@@ -150,12 +150,12 @@ std::pair<uint64_t*, uint32_t> TwoBitToMinimizers(uint32_t* s_2bit, uint32_t s_l
 
 	uint32_t N = 0;
 
-	uint64_t* minimizers = (uint64_t*)calloc(s_len * 16, sizeof(uint64_t));
+	uint64_t* minimizers = (uint64_t*)calloc(s_len, sizeof(uint64_t));
 	for (int p = 0; p < w - 1; p++) {
 		window[p] = hash32(GetSeedAtPos(s_2bit, p, k), k);
 	}
 
-	for (uint32_t p = w - 1; p < 16 * s_len - k - w; p++) {
+	for (uint32_t p = w - 1; p < s_len - k - w; p++) {
 		window[p%w] = hash32(GetSeedAtPos(s_2bit, p, k), k);
 		m = Min_Window(window, w);
 		if ((m != last_m) || (p - last_p >= w)) {
@@ -179,12 +179,12 @@ std::pair<uint64_t*, uint32_t> QTwoBitToMinimizers(uint32_t* s_2bit, uint32_t s_
 
 	uint32_t N = 0;
 
-	uint64_t* minimizers = (uint64_t*)scalable_calloc(s_len * 16, sizeof(uint64_t));
+	uint64_t* minimizers = (uint64_t*)scalable_calloc(s_len, sizeof(uint64_t));
 	for (int p = 0; p < w - 1; p++) {
 		window[p] = hash32(GetSeedAtPos(s_2bit, p, k), k);
 	}
 
-	for (uint32_t p = w - 1; p < 16 * s_len - k; p++) {
+	for (uint32_t p = w - 1; p < s_len - k; p++) {
 		window[p%w] = hash32(GetSeedAtPos(s_2bit, p, k), k);
 		m = Min_Window(window, w);
 		if ((m != last_m) || (p - last_p >= w)) {

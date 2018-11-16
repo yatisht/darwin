@@ -15,6 +15,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 #include "zlib.h"
 #include "kseq.h"

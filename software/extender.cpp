@@ -495,6 +495,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     // Send alignment to printer
 //                                    get<0>(op).try_put(printer_input(read, e));
 //                                    get<0>(op).try_put(printer_input(token));
+                                    int score = AlignmentScore(e.aligned_reference_str, e.aligned_query_str);
+                                    e.score = score;
                                     output.extend_alignments.push_back(e);
 
                                     e.right_extension_done = 1;
@@ -881,6 +883,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                         // Send alignment to printer
 //                                        get<0>(op).try_put(printer_input(read, e));
 //                                        get<0>(op).try_put(printer_input(token));
+                                        int score = AlignmentScore(e.aligned_reference_str, e.aligned_query_str);
+                                        e.score = score;
                                         output.extend_alignments.push_back(e);
 
                                         e.right_extension_done = 1;
@@ -1011,6 +1015,8 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     // Send alignment to printer
 //                                    get<0>(op).try_put(printer_input(read, e));
 //                                    get<0>(op).try_put(printer_input(token));
+                                    int score = AlignmentScore(e.aligned_reference_str, e.aligned_query_str);
+                                    e.score = score;
                                     output.extend_alignments.push_back(e);
 
                                     e.right_extension_done = 1;
@@ -1032,118 +1038,166 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
                                     //std::cerr << "Using large tile \n";
                                     extend_alignments[idx] = e;
                                 }
-							}
-							else {
-								e.used_large_tile = false;
-								extend_alignments[idx] = e;
-							}
-							free(reference_buffer);
-							free(query_buffer);
-						}
-					}
-				}
-			}
+                            }
+                            else {
+                                e.used_large_tile = false;
+                                extend_alignments[idx] = e;
+                            }
+                            free(reference_buffer);
+                            free(query_buffer);
+                        }
+                    }
+                }
+            }
 
-			assert(tiles_active == 0);
-		}
+            assert(tiles_active == 0);
+        }
 
-		for (size_t i = 0; i < reads.size(); i++)
-		{
-			Read &read = reads[i];
+        for (size_t i = 0; i < reads.size(); i++)
+        {
+            Read &read = reads[i];
 
-			// Deallocate reverse read
-			scalable_aligned_free((void *)read.rc_seq.data());
-		}
+            // Deallocate reverse read
+            scalable_aligned_free((void *)read.rc_seq.data());
+        }
 
-		get<1>(op).try_put(token);
+        get<1>(op).try_put(token);
         get<0>(op).try_put(printer_input(printer_payload(reads, output), token));
-//		return printer_input(printer_payload(reads, output), token);
-	}
+        //		return printer_input(printer_payload(reads, output), token);
+    }
 
-	ExtendAlignments  extender_body::makeForwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc)
-	{
-		int read_num = loc->read_num;
+ExtendAlignments  extender_body::makeForwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc)
+{
+    int read_num = loc->read_num;
 
-		Read &read = batch[read_num];
+    Read &read = batch[read_num];
 
-		const size_t read_len = read.seq.size();
-		char *read_char = (char *)read.seq.data();
+    const size_t read_len = read.seq.size();
+    char *read_char = (char *)read.seq.data();
 
-		int chr_id = loc->chr_id;
-		uint32_t chr_start = Index::chr_coord[chr_id];
+    int chr_id = loc->chr_id;
+    uint32_t chr_start = Index::chr_coord[chr_id];
 
-		ExtendAlignments extend_alignment;
+    ExtendAlignments extend_alignment;
 
-		extend_alignment.read_num = read_num;
-		extend_alignment.chr_id = chr_id;
-		extend_alignment.curr_reference_offset = loc->reference_pos - chr_start;
-		extend_alignment.curr_query_offset = loc->query_pos;
-		extend_alignment.reference_start_offset = loc->reference_pos - chr_start;
-		extend_alignment.query_start_offset = loc->query_pos;
-		extend_alignment.reference_end_offset = loc->reference_pos - chr_start;
-		extend_alignment.query_end_offset = loc->query_pos;
+    extend_alignment.read_num = read_num;
+    extend_alignment.chr_id = chr_id;
+    extend_alignment.curr_reference_offset = loc->reference_pos - chr_start;
+    extend_alignment.curr_query_offset = loc->query_pos;
+    extend_alignment.reference_start_offset = loc->reference_pos - chr_start;
+    extend_alignment.query_start_offset = loc->query_pos;
+    extend_alignment.reference_end_offset = loc->reference_pos - chr_start;
+    extend_alignment.query_end_offset = loc->query_pos;
 
-		extend_alignment.reference_start_addr = Index::chr_coord[chr_id];
-		extend_alignment.query_start_addr = (read_char - g_DRAM->buffer);
-		extend_alignment.reference_length = Index::chr_len[chr_id];
-		extend_alignment.query_length = read_len;
+    extend_alignment.reference_start_addr = Index::chr_coord[chr_id];
+    extend_alignment.query_start_addr = (read_char - g_DRAM->buffer);
+    extend_alignment.reference_length = Index::chr_len[chr_id];
+    extend_alignment.query_length = read_len;
 
-        extend_alignment.left_hit_offsets.assign(loc->left_hit_offsets.begin(), loc->left_hit_offsets.end());
-		extend_alignment.right_hit_offsets.assign(loc->right_hit_offsets.begin(), loc->right_hit_offsets.end());
+    extend_alignment.left_hit_offsets.assign(loc->left_hit_offsets.begin(), loc->left_hit_offsets.end());
+    extend_alignment.right_hit_offsets.assign(loc->right_hit_offsets.begin(), loc->right_hit_offsets.end());
 
-		extend_alignment.left_extension_done = 0;
-		extend_alignment.right_extension_done = 0;
-		
-        extend_alignment.used_large_tile = false;
+    extend_alignment.left_extension_done = 0;
+    extend_alignment.right_extension_done = 0;
 
-		extend_alignment.aligned_reference_str = "";
-		extend_alignment.aligned_query_str = "";
+    extend_alignment.do_print = true;
+    extend_alignment.used_large_tile = false;
 
-		extend_alignment.strand = '+';
+    extend_alignment.aligned_reference_str = "";
+    extend_alignment.aligned_query_str = "";
 
-		return extend_alignment;
-	}
+    extend_alignment.score = 0;
 
-	ExtendAlignments  extender_body::makeBackwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc)
-	{
-		int read_num = loc->read_num;
+    extend_alignment.strand = '+';
 
-		Read &read = batch[read_num];
+    return extend_alignment;
+}
 
-		const size_t read_len = read.seq.size();
-		char *read_char = (char *)read.seq.data();
+ExtendAlignments  extender_body::makeBackwardAlignment(std::vector<Read> &batch, std::vector<ExtendLocations>::const_iterator &loc)
+{
+    int read_num = loc->read_num;
 
-		int chr_id = loc->chr_id;
-		uint32_t chr_start = Index::chr_coord[chr_id];
+    Read &read = batch[read_num];
 
-		ExtendAlignments extend_alignment;
+    const size_t read_len = read.seq.size();
+    char *read_char = (char *)read.seq.data();
 
-		extend_alignment.read_num = read_num;
-		extend_alignment.chr_id = chr_id;
-		extend_alignment.curr_reference_offset = loc->reference_pos - chr_start;
-		extend_alignment.curr_query_offset = loc->query_pos;
-		extend_alignment.reference_start_offset = loc->reference_pos - chr_start;
-		extend_alignment.query_start_offset = loc->query_pos;
-		extend_alignment.reference_end_offset = loc->reference_pos - chr_start;
-		extend_alignment.query_end_offset = loc->query_pos;
+    int chr_id = loc->chr_id;
+    uint32_t chr_start = Index::chr_coord[chr_id];
 
-		extend_alignment.reference_start_addr = chr_start;
-		extend_alignment.query_start_addr = (read_char - g_DRAM->buffer);
-		extend_alignment.reference_length = Index::chr_len[chr_id];
-		extend_alignment.query_length = read_len;
+    ExtendAlignments extend_alignment;
 
-        extend_alignment.left_hit_offsets.assign(loc->left_hit_offsets.begin(), loc->left_hit_offsets.end());
-		extend_alignment.right_hit_offsets.assign(loc->right_hit_offsets.begin(), loc->right_hit_offsets.end());
+    extend_alignment.read_num = read_num;
+    extend_alignment.chr_id = chr_id;
+    extend_alignment.curr_reference_offset = loc->reference_pos - chr_start;
+    extend_alignment.curr_query_offset = loc->query_pos;
+    extend_alignment.reference_start_offset = loc->reference_pos - chr_start;
+    extend_alignment.query_start_offset = loc->query_pos;
+    extend_alignment.reference_end_offset = loc->reference_pos - chr_start;
+    extend_alignment.query_end_offset = loc->query_pos;
 
-		extend_alignment.left_extension_done = 0;
-		extend_alignment.right_extension_done = 0;
-        
-        extend_alignment.used_large_tile = false;
+    extend_alignment.reference_start_addr = chr_start;
+    extend_alignment.query_start_addr = (read_char - g_DRAM->buffer);
+    extend_alignment.reference_length = Index::chr_len[chr_id];
+    extend_alignment.query_length = read_len;
 
-		extend_alignment.aligned_reference_str = "";
-		extend_alignment.aligned_query_str = "";
+    extend_alignment.left_hit_offsets.assign(loc->left_hit_offsets.begin(), loc->left_hit_offsets.end());
+    extend_alignment.right_hit_offsets.assign(loc->right_hit_offsets.begin(), loc->right_hit_offsets.end());
 
-		extend_alignment.strand = '-';
+    extend_alignment.left_extension_done = 0;
+    extend_alignment.right_extension_done = 0;
 
-		return extend_alignment;
-	}
+    extend_alignment.do_print = true;
+    extend_alignment.used_large_tile = false;
+
+    extend_alignment.aligned_reference_str = "";
+    extend_alignment.aligned_query_str = "";
+
+    extend_alignment.score = 0;
+
+    extend_alignment.strand = '-';
+
+    return extend_alignment;
+}
+
+int extender_body::AlignmentScore(std::string ref, std::string query) {
+    int score = 0;
+    int index = 0;
+    int open = 0;
+    int short_gap_penalty = 0;
+    int long_gap_penalty = 0;
+
+    int mat_offset[] = { 0, 1, 3, 6 };
+
+    for (int l = 0; l < ref.length(); l++) {
+        char r = ref[l];
+        char q = query[l];
+        if ((r == '-') || (q == '-')) {
+            short_gap_penalty += (open) ? cfg.gap_extend : cfg.gap_open;
+            long_gap_penalty += (open) ? cfg.long_gap_extend : cfg.long_gap_open;
+            open = 1;
+        }
+        else {
+            int r_nt = NtChar2Int(r);
+            int q_nt = NtChar2Int(q);
+            if ((r_nt <= 3) && (q_nt <= 3)) {
+                if (r_nt > q_nt) {
+                    index = q_nt * 4 + r_nt - mat_offset[q_nt];
+                }
+                else {
+                    index = r_nt * 4 + q_nt - mat_offset[r_nt];
+                }
+                score += cfg.gact_sub_mat[index];
+            }
+            else {
+                score += cfg.gact_sub_mat[10];
+            }
+            score += (long_gap_penalty < short_gap_penalty) ? short_gap_penalty : long_gap_penalty;
+            open = 0;
+            short_gap_penalty = 0;
+            long_gap_penalty = 0;
+        }
+    }
+    return score;
+}
+
