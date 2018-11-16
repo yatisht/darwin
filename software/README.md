@@ -11,9 +11,7 @@ Use the following steps for compiling on linux machine (tested on Ubuntu 16.04)
 * copy kseq.h from https://github.com/lh3/ksw2
 * build darwin using the following steps
 ```
-    $ mkdir build && cd build
-    $ cmake -DCMAKE_BUILD_TYPE=Release ..
-    $ cd ..
+    $ cmake -DCMAKE_BUILD_TYPE=Release .
     $ make
 ```
 * test using the sample data
