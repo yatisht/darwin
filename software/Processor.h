@@ -4,7 +4,7 @@
 #include "DRAM.h"
 #include "Index.h"
 
-#define INF (1 << 30)
+#define INF (1 << 24)
 #define MAX_TILE_SIZE 512
 
 typedef int AlnOp;

@@ -122,44 +122,45 @@ SeedPosTable::SeedPosTable(uint32_t ref_length, const int seed_size, const int m
 	// Bucket sort
 	seedPositions = (uint32_t*)scalable_malloc(seedCount * sizeof(uint32_t));
 
-	for (std::size_t chr = 0; chr <  minimizers.size(); chr++)
-	{
-		auto miniList = minimizers[chr];
+//	for (std::size_t chr = 0; chr <  minimizers.size(); chr++)
+//	{
+//		auto miniList = minimizers[chr];
+//
+//		const uint32_t localCount = miniList.size();
+//
+//		for (uint32_t i = 0; i < localCount; i++)
+//		{
+//			uint64_t minimizer = miniList[i];
+//
+//			uint32_t pos = ((minimizer << 32) >> 32);
+//			uint32_t seed = (minimizer >> 32);
+//
+//			uint32_t posIndex = seedBuckets[seed] + (--seedHistogram[seed]);
+//			seedPositions[posIndex] = pos;
+//		}
+//	}
 
-		const uint32_t localCount = miniList.size();
-
-		for (uint32_t i = 0; i < localCount; i++)
+	tbb::parallel_for(tbb::blocked_range<std::size_t>(0, minimizers.size()),
+		[&](const tbb::blocked_range<std::size_t> &r) {
+		for (std::size_t chr = r.begin(); chr < r.end(); chr++)
 		{
-			uint64_t minimizer = miniList[i];
+			auto miniList = minimizers[chr];
 
-			uint32_t pos = ((minimizer << 32) >> 32);
-			uint32_t seed = (minimizer >> 32);
+			const uint32_t localCount = miniList.size();
 
-			uint32_t posIndex = seedBuckets[seed] + (--seedHistogram[seed]);
-			seedPositions[posIndex] = pos;
+			for (uint32_t i = 0; i < localCount; i++)
+			{
+				uint64_t minimizer = miniList[i];
+
+				uint32_t pos = ((minimizer << 32) >> 32);
+				uint32_t seed = (minimizer >> 32);
+
+//				uint32_t posIndex = seedBuckets[seed] + InterlockedDecrement(seedHistogram + seed);
+                uint32_t posIndex = seedBuckets[seed] + (__sync_fetch_and_add(&seedHistogram[seed], -1)-1);
+				seedPositions[posIndex] = pos;
+			}
 		}
-	}
-
-	//tbb::parallel_for(tbb::blocked_range<std::size_t>(0, minimizers.size()),
-	//	[&](const tbb::blocked_range<std::size_t> &r) {
-	//	for (std::size_t chr = r.begin(); chr < r.end(); chr++)
-	//	{
-	//		auto miniList = minimizers[chr];
-
-	//		const uint32_t localCount = miniList.size();
-
-	//		for (uint32_t i = 0; i < localCount; i++)
-	//		{
-	//			uint64_t minimizer = miniList[i];
-
-	//			uint32_t pos = ((minimizer << 32) >> 32);
-	//			uint32_t seed = (minimizer >> 32);
-
-	//			uint32_t posIndex = seedBuckets[seed] + InterlockedDecrement(seedHistogram + seed);
-	//			seedPositions[posIndex] = pos;
-	//		}
-	//	}
-	//});
+	});
 
 	// sort buckets by position
 	tbb::parallel_for(tbb::blocked_range<std::size_t>(0, histogramSize),
@@ -374,6 +375,14 @@ std::vector<Anchors> SeedPosTable::DSOFT(char* query, uint32_t query_length, int
 		else {
 			last_bin = bin;
 			curr_count = kmer_size_;
+			if (curr_count >= threshold) {
+				uint64_t anchor = ((uint64_t)hit << 32) + offset;
+				anchors.push_back(Anchors(anchor));
+				candidate_bins.push_back(bin);
+				if (num_candidates >= max_candidates) {
+					break;
+				}
+			}
 			//curr_count = 1;
 		}
 		last_offset = offset;

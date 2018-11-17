@@ -319,7 +319,7 @@ int main(int argc, char *argv[]) {
 		//		uint32_t* seedHistogram2 = (uint32_t*)scalable_calloc(histogramSize, sizeof(uint32_t));
 		//#endif
 
-		tbb::flow::function_node<seeder_input, seeder_input> minimizer(index_graph, 1,
+		tbb::flow::function_node<seeder_input, seeder_input> minimizer(index_graph, tbb::flow::unlimited,
 			[&](seeder_input input) {
 			Read chr = get<0>(input)[0];
 
