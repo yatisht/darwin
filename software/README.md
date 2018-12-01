@@ -7,7 +7,7 @@ Use the following steps for compiling on linux machine (tested on Ubuntu 16.04)
 ```
     $ gbc cpp Darwin.bond
 ```
-* clone tbb package  
+* clone tbb package (https://github.com/01org/tbb) 
 ```
     $ cd ${HOME}; git clone https://github.com/01org/tbb 
 ```
