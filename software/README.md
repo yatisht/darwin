@@ -3,10 +3,13 @@
 Use the following steps for compiling on linux machine (tested on Ubuntu 16.04)
 
 * install bond package (https://github.com/Microsoft/bond)
-* install tbb package  (eg. clone the latest release from https://github.com/01org/tbb in ${HOME}) 
 * generate bond headers using gbc (installed with bond library)
 ```
     $ gbc cpp Darwin.bond
+```
+* clone tbb package  
+```
+    $ cd ${HOME}; git clone https://github.com/01org/tbb 
 ```
 * copy kseq.h from https://github.com/lh3/ksw2
 * build darwin using the following steps
