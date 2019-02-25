@@ -14,4 +14,14 @@ This repository provides the software for performing reference-guided or de novo
     
     * Roman Snytsar and Yatish Turakhia. "Parallel approach to sliding window sums." arXiv preprint, [arXiv:1811.10074], 2018.
     
+
+## Acknowledgment
+
+* Roman Snytsar ([@mirounga]) for his help restructing the software code to work with the Intel TBB library and for implementing faster seed table construction using AVX instructions.
+* George Horrell ([@georgehorrell]) for implementing faster GACT algorithm in software using AVX instructions.
+* Sneha D. Goenka ([@gsneha26]) for fixing bugs in GACT RTL.
+
 [arXiv:1811.10074]: https://arxiv.org/abs/1811.10074
+[@mirounga]: https://github.com/mirounga
+[@georgehorrell]: https://github.com/georgehorrell
+[@gsneha26]: https://github.com/gsneha26
