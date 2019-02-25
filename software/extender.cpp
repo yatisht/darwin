@@ -224,7 +224,7 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 				{
                     //fpga_writer_lock.lock_read();
 
-					g_BatchAlignment(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
+					g_BatchAlignmentSIMD(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
 
                     //fpga_writer_lock.unlock();
 				}
@@ -739,7 +739,7 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
 				{
                     //fpga_writer_lock.lock_read();
 
-					g_BatchAlignment(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
+					g_BatchAlignmentSIMD(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
 
                     //fpga_writer_lock.unlock();
 				}

@@ -74,7 +74,7 @@ extender_input filter_body::operator()(filter_input input)
 
                 //fpga_writer_lock.lock_read();
 
-				g_BatchAlignment(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
+				g_BatchAlignmentSIMD(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
 
                 //fpga_writer_lock.unlock();
 
@@ -176,7 +176,7 @@ extender_input filter_body::operator()(filter_input input)
 
                 //fpga_writer_lock.lock_read();
 
-				g_BatchAlignment(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
+				g_BatchAlignmentSIMD(token, g_DRAM->buffer, request_batch_dram, result_batch_dram);
 
                 //fpga_writer_lock.unlock();
 
