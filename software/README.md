@@ -17,10 +17,11 @@ Use the following steps for compiling on linux machine (tested on Ubuntu 16.04)
     $ cmake -DTBB_ROOT=${HOME}/tbb -DCMAKE_BUILD_TYPE=Release .
     $ make
 ```
-* test using the sample data
+* test reference-guided assembly using the sample data
 ```
     $ ./Darwin data/sample_ref.fa data/sample_reads.fa  0 > out.maf
 ```
-
-## Acknowledgment 
-Thanks to Roman Snytsar (Microsoft Research) for his contribution to this code.
+* test overlap stage for OLC assembly using the sample data (without the awk command below, the output also prints the actual alignments)
+```
+    $ ./Darwin data/sample_reads.fa data/sample_reads.fa  1 | awk '{if (NF > 1) {print $0}}' > out.mhap
+```

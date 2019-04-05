@@ -36,7 +36,6 @@ std::atomic<int> num_reads(0);
 
 //std::mutex io_lock;
 
-int do_overlap = 0;
 
 float Abs(float x1) {
 	float y = (x1 >= 0) ? x1 : -1 * x1;
@@ -172,6 +171,9 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+    
+    int do_overlap = 0;
+	do_overlap = stoi(argv[3]);
 //	INIReader cfg_file("params.cfg");
     ConfigFile cfg_file("params.cfg");
 
@@ -288,7 +290,6 @@ int main(int argc, char *argv[]) {
 
 	std::string reference_filename(argv[1]);
 	std::string reads_filename(argv[2]);
-	do_overlap = stoi(argv[3]);
 
 	g_DRAM = new DRAM;
 
@@ -422,6 +423,7 @@ int main(int argc, char *argv[]) {
 			if (kseq_read(kseq_rd) >= 0)
 			{
 				size_t seq_len = kseq_rd->seq.l;
+                size_t seq_len_unpadded = seq_len;
 
 				if (seq_len > readBufferLimit) {
 
@@ -449,6 +451,7 @@ int main(int argc, char *argv[]) {
 					Index::chr_id.push_back(read.description);
 
 					Index::chr_len.push_back(seq_len);
+                    Index::chr_len_unpadded.push_back(seq_len_unpadded);
 
 					Index::chr_coord.push_back(g_DRAM->referenceSize);
 
@@ -586,7 +589,7 @@ int main(int argc, char *argv[]) {
 
 	tbb::flow::graph align_graph;
 
-	tbb::flow::function_node<printer_input, size_t> printer(align_graph, tbb::flow::unlimited, maf_printer_body());
+	tbb::flow::function_node<printer_input, size_t> printer(align_graph, tbb::flow::unlimited, printer_body());
 
 	extender_node extender(align_graph, tbb::flow::unlimited, extender_body());
 

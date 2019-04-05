@@ -115,8 +115,25 @@ struct ExtendAlignments {
 	std::string aligned_reference_str;
 	std::string aligned_query_str;
     int score;
+    int chain_score;
     vector<uint64_t> left_hit_offsets;
 	vector<uint64_t> right_hit_offsets;
+};
+
+struct SamFields {
+    std::string QNAME;
+    uint16_t FLAG;
+    std::string RNAME;
+    size_t  POS;
+    uint8_t MAPQ;
+    std::string CIGAR;
+    std::string RNEXT;
+    size_t PNEXT;
+    int32_t TLEN;
+    std::string SEQ;
+    std::string QUAL;
+    int32_t SCORE;
+    int32_t CHAIN_SCORE;
 };
 
 typedef std::vector<Read> reader_output;
@@ -159,8 +176,12 @@ typedef tbb::flow::tuple<printer_input, size_t> extender_output;
 
 typedef tbb::flow::multifunction_node<extender_input, extender_output> extender_node;
 
-struct maf_printer_body
+struct printer_body
 {
+	static std::atomic<int> done_header;
+    SamFields AlignmentToSam (Read r, ExtendAlignments e);
+    void sam_printer(printer_input input);
+    void mhap_printer(printer_input input);
 	size_t operator()(printer_input input);
 };
 

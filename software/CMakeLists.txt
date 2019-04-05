@@ -43,7 +43,7 @@ Processor.h
 graph.h
 extender.cpp
 filter.cpp
-maf_printer.cpp
+printer.cpp
 seeder.cpp
 sender.cpp
 main.cpp)

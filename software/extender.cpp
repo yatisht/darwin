@@ -1053,13 +1053,11 @@ void extender_body::operator()(extender_input input, extender_node::output_ports
             assert(tiles_active == 0);
         }
 
-        for (size_t i = 0; i < reads.size(); i++)
-        {
-            Read &read = reads[i];
-
-            // Deallocate reverse read
-            scalable_aligned_free((void *)read.rc_seq.data());
-        }
+//        for (size_t i = 0; i < reads.size(); i++)
+//        {
+//            Read &read = reads[i];
+//
+//        }
 
         get<1>(op).try_put(token);
         get<0>(op).try_put(printer_input(printer_payload(reads, output), token));

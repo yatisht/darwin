@@ -4,6 +4,7 @@
 
 std::vector<std::string>  Darwin::Index::chr_id;
 std::vector<uint32_t>  Darwin::Index::chr_len;
+std::vector<uint32_t>  Darwin::Index::chr_len_unpadded;
 std::vector<uint32_t>  Darwin::Index::chr_coord;
 
 void Darwin::Index::init()
